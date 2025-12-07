@@ -1,0 +1,150 @@
+{
+    "workbench.colorTheme": "One Dark Pro Monokai Darker",
+    "reactSnippets.settings.prettierEnabled": true,
+    "eslint.useFlatConfig": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "gopls": {
+        "ui.diagnostic.staticcheck": true
+    },
+    "[go]": {
+        "editor.defaultFormatter": "golang.go",
+        "editor.formatOnSave": true
+    },
+    "json.schemas": [
+        {
+            "fileMatch": [
+                "/myfile"
+            ],
+            "url": "schemaURL"
+        }
+    ],
+    "git.autofetch": true,
+    "makefile.configureOnOpen": true,
+    "editor.smoothScrolling": true,
+    "editor.fontFamily": "JetBrains Mono, monospace",
+    "workbench.iconTheme": "material-icon-theme",
+    "terminal.integrated.fontSize": 13,
+    "terminal.integrated.fontWeight": "normal",
+    "chat.editor.fontSize": 18,
+    "github.copilot.chat.localeOverride": "ja",
+    "githubPullRequests.pullBranch": "never",
+    "[csv]": {
+        "files.encoding": "shiftjis"
+    },
+    "window.titleBarStyle": "custom",
+    "files.watcherExclude": {
+        "/node_modules/": true,
+        "/storage/": true,
+        "/tmp/": true,
+        "/vendor/": true
+    },
+    "security.promptForLocalFileProtocolHandling": false,
+    "go.toolsManagement.autoUpdate": true,
+    "chat.editing.confirmEditRequestRetry": false,
+    "editor.fontSize": 15,
+    "editor.minimap.sectionHeaderFontSize": 12,
+    "editor.fontVariations": false,
+    "editor.minimap.enabled": false,
+    "github.copilot.chat.reviewSelection.instructions": [],
+    "cline.preferredLanguage": "Japanese - 日本語",
+    "github.copilot.chat.codesearch.enabled": true,
+    "github.copilot.chat.agent.thinkingTool": true,
+    "github.copilot.nextEditSuggestions.enabled": true,
+    "github.copilot.chat.edits.temporalContext.enabled": true,
+    "github.copilot.chat.commitMessageGeneration.instructions": [
+        {
+            "text": "必ず日本語で記述してください"
+        },
+        {
+            "text": "コミットメッセージは、最初にConventional Commitsに則って記述してください"
+        },
+        {
+            "text": "その後ファイルごとの詳細な変更内容を記述してください"
+        }
+    ],
+    "workbench.settings.applyToAllProfiles": [],
+    "intelephense.codeLens.usages.enable": true,
+    "intelephense.codeLens.references.enable": true,
+    "intelephense.codeLens.parent.enable": true,
+    "intelephense.files.exclude": [
+        "**/.git/**",
+        "**/.svn/**",
+        "**/.hg/**",
+        "**/CVS/**",
+        "**/.DS_Store/**",
+        "**/node_modules/**",
+        "**/bower_components/**",
+        "**/vendor/**/{Tests,tests}/**",
+        "**/.history/**",
+        "**/vendor/**/vendor/**",
+        "**/tmp/**"
+    ],
+    "better-phpunit.docker.enable": true,
+    "better-phpunit.docker.command": "docker-compose exec app",
+    "better-phpunit.docker.paths": {
+        "./": "./work/"
+    },
+    "inlineChat.enableV2": true,
+    "workbench.colorCustomizations": {},
+    "github.copilot.chat.editor.temporalContext.enabled": true,
+    "github.copilot.chat.search.keywordSuggestions": true,
+    "intelephense.rename.exclude": [
+        "**/vendor/**",
+        "**/node_modules/**",
+        "**/tmp/**"
+    ],
+    "artisan.docker.enabled": true,
+    "artisan.location": "",
+    "artisan.docker.command": "docker compose exec app",
+    "laravel_goto_view.extensions": [
+        ".blade.php",
+        ".vue",
+        ".tsx"
+    ],
+    "php-cs-fixer.onsave": true,
+    "php-docblocker.useShortNames": true,
+    "phpunit.docker.container": "",
+    "vs-code-prettier-eslint.prettierLast": true,
+    "resmon.disk.format": "PercentUsed",
+    "resmon.show.disk": true,
+    "LaravelIntellisense.docker": "docker compose exec app",
+    "database-client.autoSync": true,
+    "oneDarkPro.bold": true,
+    "oneDarkPro.vivid": true,
+    "editor.inlayHints.fontFamily": "JetBrains Mono, monospace",
+    "editor.inlineSuggest.fontFamily": "JetBrains Mono, monospace",
+    "debug.console.fontFamily": "JetBrains Mono, monospace",
+    "terminal.integrated.fontFamily": "JetBrains Mono, monospace",
+    "editor.codeLensFontFamily": "JetBrains Mono, monospace",
+    "scm.inputFontFamily": "JetBrains Mono, monospace",
+    "notebook.markup.fontFamily": "JetBrains Mono, monospace",
+    "notebook.output.fontFamily": "JetBrains Mono, monospace",
+    "php-cs-fixer.executablePath": "",
+    "phpunit.configFile": "/Users/hytfjwr/axis/zaico/phpunit.xml",
+    "phpunit.dockerImage": "docker compose exec app",
+    "phpunit.files": "{test,tests,Test,Tests}/**/**.php",
+    "phpunit.docker": true,
+    "Laravel.phpEnvironment": "local",
+    "docker.extension.enableComposeLanguageServer": false,
+    "LaravelExtraIntellisense.phpCommand": "docker compose exec app php -r \"{code}\"",
+    "geminicodeassist.codeGenerationPaneViewEnabled": true,
+    "git.confirmSync": false,
+    "gitlens.ai.model": "vscode",
+    "gitlens.ai.vscode.model": "copilot:gpt-4.1",
+    "explorer.confirmDragAndDrop": false,
+    "LaravelExtraIntellisense.modelsPaths": [
+        "app/Models"
+    ],
+    "phpunit.xdebugPort": 9004,
+    "phpunit.command": "docker compose exec app ${phpunit} ${phpunitargs}\"",
+    "phpunit.php": "php",
+    "phpunit.phpunit": "vendor/bin/phpunit",
+    "phpunit.args": [
+      "-c",
+      "phpunit.xml"
+    ],
+    "phpunit.paths": {
+      "${workspaceFolder}": "/work",
+    },
+    "docker.extension.dockerEngineAvailabilityPrompt": false,
+}
