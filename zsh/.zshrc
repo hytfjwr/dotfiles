@@ -125,7 +125,7 @@ eval "$(pyenv init -)"
 export GOENV_ROOT=$HOME/.goenv
 export PATH=$GOENV_ROOT/bin:$PATH
 eval "$(goenv init -)"# The following lines have been added by Docker Desktop to enable Docker CLI completions.
-fpath=(/Users/hytfjwr/.docker/completions $fpath)
+fpath=($HOME/.docker/completions $fpath)
 autoload -Uz compinit
 compinit
 # End of Docker CLI completions
@@ -137,13 +137,13 @@ export ANTHROPIC_VERTEX_PROJECT_ID=anthropic-vertexai
 alias claude-1.0.55='npx @anthropic-ai/claude-code@1.0.55'
 
 # The next line updates PATH for the Google Cloud SDK.
-if [ -f '/Users/hytfjwr/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/hytfjwr/google-cloud-sdk/path.zsh.inc'; fi
+if [ -f "$HOME/google-cloud-sdk/path.zsh.inc" ]; then . "$HOME/google-cloud-sdk/path.zsh.inc"; fi
 
 # The next line enables shell command completion for gcloud.
-if [ -f '/Users/hytfjwr/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/hytfjwr/google-cloud-sdk/completion.zsh.inc'; fi
+if [ -f "$HOME/google-cloud-sdk/completion.zsh.inc" ]; then . "$HOME/google-cloud-sdk/completion.zsh.inc"; fi
 
 # pnpm
-export PNPM_HOME="/Users/hytfjwr/Library/pnpm"
+export PNPM_HOME="$HOME/Library/pnpm"
 case ":$PATH:" in
   *":$PNPM_HOME:"*) ;;
   *) export PATH="$PNPM_HOME:$PATH" ;;
@@ -159,7 +159,7 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
 # bun completions
-[ -s "/Users/hytfjwr/.bun/_bun" ] && source "/Users/hytfjwr/.bun/_bun"
+[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
 
 # bun
 export BUN_INSTALL="$HOME/.bun"

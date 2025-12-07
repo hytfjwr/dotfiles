@@ -120,7 +120,6 @@
     "notebook.markup.fontFamily": "JetBrains Mono, monospace",
     "notebook.output.fontFamily": "JetBrains Mono, monospace",
     "php-cs-fixer.executablePath": "",
-    "phpunit.configFile": "/Users/hytfjwr/axis/zaico/phpunit.xml",
     "phpunit.dockerImage": "docker compose exec app",
     "phpunit.files": "{test,tests,Test,Tests}/**/**.php",
     "phpunit.docker": true,
