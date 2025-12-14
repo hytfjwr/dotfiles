@@ -103,7 +103,6 @@
     ],
     "php-cs-fixer.onsave": true,
     "php-docblocker.useShortNames": true,
-    "phpunit.docker.container": "",
     "vs-code-prettier-eslint.prettierLast": true,
     "resmon.disk.format": "PercentUsed",
     "resmon.show.disk": true,
@@ -120,9 +119,6 @@
     "notebook.markup.fontFamily": "JetBrains Mono, monospace",
     "notebook.output.fontFamily": "JetBrains Mono, monospace",
     "php-cs-fixer.executablePath": "",
-    "phpunit.dockerImage": "docker compose exec app",
-    "phpunit.files": "{test,tests,Test,Tests}/**/**.php",
-    "phpunit.docker": true,
     "Laravel.phpEnvironment": "local",
     "docker.extension.enableComposeLanguageServer": false,
     "LaravelExtraIntellisense.phpCommand": "docker compose exec app php -r \"{code}\"",
@@ -146,4 +142,15 @@
       "${workspaceFolder}": "/work",
     },
     "docker.extension.dockerEngineAvailabilityPrompt": false,
+    "php.suggest.basic": false,
+    "intelephense.format.enable": true,
+    "chat.instructionsFilesLocations": {
+        ".github/instructions": true,
+        "/var/folders/5p/rwl8qk4965s_4dskdljxrwym0000gn/T/postman-collections-post-response.instructions.md": true,
+        "/var/folders/5p/rwl8qk4965s_4dskdljxrwym0000gn/T/postman-collections-pre-request.instructions.md": true,
+        "/var/folders/5p/rwl8qk4965s_4dskdljxrwym0000gn/T/postman-folder-post-response.instructions.md": true,
+        "/var/folders/5p/rwl8qk4965s_4dskdljxrwym0000gn/T/postman-folder-pre-request.instructions.md": true,
+        "/var/folders/5p/rwl8qk4965s_4dskdljxrwym0000gn/T/postman-http-request-post-response.instructions.md": true,
+        "/var/folders/5p/rwl8qk4965s_4dskdljxrwym0000gn/T/postman-http-request-pre-request.instructions.md": true
+    }
 }
