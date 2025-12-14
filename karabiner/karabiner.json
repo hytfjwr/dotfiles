@@ -4,6 +4,40 @@
             "complex_modifications": {
                 "rules": [
                     {
+                        "description": "Left Cmd + CapsLock to English (ABC), Right Cmd + CapsLock to Japanese (Kotoeri)",
+                        "manipulators": [
+                            {
+                                "from": {
+                                    "key_code": "caps_lock",
+                                    "modifiers": { "mandatory": ["left_command"] }
+                                },
+                                "to": [
+                                    {
+                                        "select_input_source": {
+                                            "input_source_id": "com.apple.keylayout.ABC"
+                                        }
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "caps_lock",
+                                    "modifiers": { "mandatory": ["right_command"] }
+                                },
+                                "to": [
+                                    {
+                                        "select_input_source": {
+                                            "input_source_id": "com.apple.inputmethod.Kotoeri.RomajiTyping",
+                                            "input_mode_id": "com.apple.inputmethod.Japanese"
+                                        }
+                                    }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
                         "description": "Custom Rules for Claude Code CLI (Warp Shift+Enter to Ctrl+J, etc.)",
                         "manipulators": [
                             {
@@ -64,9 +98,20 @@
                     }
                 ]
             },
+            "devices": [
+                {
+                    "identifiers": {
+                        "is_keyboard": true,
+                        "is_pointing_device": true,
+                        "product_id": 2080,
+                        "vendor_id": 13364
+                    },
+                    "ignore": false
+                }
+            ],
             "name": "Default profile",
             "selected": true,
-            "virtual_hid_keyboard": { "keyboard_type_v2": "jis" }
+            "virtual_hid_keyboard": { "keyboard_type_v2": "ansi" }
         }
     ]
 }
