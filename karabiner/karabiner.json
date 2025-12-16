@@ -4,7 +4,7 @@
             "complex_modifications": {
                 "rules": [
                     {
-                        "description": "Left Cmd + CapsLock to English (ABC), Right Cmd + CapsLock to Japanese (Kotoeri)",
+                        "description": "Left Cmd + CapsLock to English (ABC), Right Cmd + CapsLock to Japanese (Google IME)",
                         "manipulators": [
                             {
                                 "from": {
@@ -28,7 +28,7 @@
                                 "to": [
                                     {
                                         "select_input_source": {
-                                            "input_source_id": "com.apple.inputmethod.Kotoeri.RomajiTyping",
+                                            "input_source_id": "com.google.inputmethod.Japanese.base",
                                             "input_mode_id": "com.apple.inputmethod.Japanese"
                                         }
                                     }
