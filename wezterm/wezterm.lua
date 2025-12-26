@@ -1,5 +1,6 @@
 -- WezTerm configuration
 local wezterm = require("wezterm")
+local keybindings = require("keybindings")
 local config = wezterm.config_builder()
 
 -- フォント設定
@@ -58,6 +59,47 @@ config.window_background_gradient = {
     segment_smoothness = 1.0,
 }
 
+-- タブバーの透過
+config.window_frame = {
+    inactive_titlebar_bg = "none",
+    active_titlebar_bg = "none",
+}
+
+-- タブ同士の境界線を非表示
+config.colors = {
+  tab_bar = {
+    inactive_tab_edge = "none",
+  },
+}
+
+-- タブの形をカスタマイズ
+
+wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_width)
+  local background = "#5c6d74"
+  local foreground = "#FFFFFF"
+  local edge_background = "none"
+  if tab.is_active then
+    background = "#9ac742"
+    foreground = "#292929"
+  end
+  local edge_foreground = background
+  -- タブ名が設定されていればそれを使用、なければペインのタイトルを使用
+  local tab_title = tab.tab_title
+  if not tab_title or #tab_title == 0 then
+    tab_title = tab.active_pane.title
+  end
+  local title = "   " .. wezterm.truncate_right(tab_title, max_width - 1) .. "   "
+  return {
+    { Background = { Color = edge_background } },
+    { Foreground = { Color = edge_foreground } },
+    { Background = { Color = background } },
+    { Foreground = { Color = foreground } },
+    { Text = title },
+    { Background = { Color = edge_background } },
+    { Foreground = { Color = edge_foreground } },
+  }
+end)
+
 -- ハイパーリンク設定
 config.hyperlink_rules = wezterm.default_hyperlink_rules()
 config.hyperlink_rules = {
@@ -75,93 +117,8 @@ config.tab_bar_at_bottom = false
 config.scrollback_lines = 10000
 
 -- キーバインド
-config.keys = {
-	-- ペイン分割
-	{
-		key = "d",
-		mods = "CMD",
-		action = wezterm.action.SplitHorizontal({ domain = "CurrentPaneDomain" }),
-	},
-	{
-		key = "d",
-		mods = "CMD|SHIFT",
-		action = wezterm.action.SplitVertical({ domain = "CurrentPaneDomain" }),
-	},
-	-- ペイン移動
-	{
-		key = "LeftArrow",
-		mods = "CMD|OPT",
-		action = wezterm.action.ActivatePaneDirection("Left"),
-	},
-	{
-		key = "RightArrow",
-		mods = "CMD|OPT",
-		action = wezterm.action.ActivatePaneDirection("Right"),
-	},
-	{
-		key = "UpArrow",
-		mods = "CMD|OPT",
-		action = wezterm.action.ActivatePaneDirection("Up"),
-	},
-	{
-		key = "DownArrow",
-		mods = "CMD|OPT",
-		action = wezterm.action.ActivatePaneDirection("Down"),
-	},
-	-- タブ操作
-	{
-		key = "t",
-		mods = "CMD",
-		action = wezterm.action.SpawnTab("CurrentPaneDomain"),
-	},
-	{
-		key = "w",
-		mods = "CMD",
-		action = wezterm.action.CloseCurrentPane({ confirm = true }),
-	},
-	-- タブ移動（方向キー）
-	{
-		key = "LeftArrow",
-		mods = "CMD|SHIFT",
-		action = wezterm.action.ActivateTabRelative(-1),
-	},
-	{
-		key = "RightArrow",
-		mods = "CMD|SHIFT",
-		action = wezterm.action.ActivateTabRelative(1),
-	},
-	-- フォントサイズ拡大・縮小
-	{
-		key = "+",
-		mods = "CMD",
-		action = wezterm.action.IncreaseFontSize,
-	},
-	{
-		key = "=",
-		mods = "CMD",
-		action = wezterm.action.IncreaseFontSize,
-	},
-	{
-		key = "-",
-		mods = "CMD",
-		action = wezterm.action.DecreaseFontSize,
-	},
-	{
-		key = "0",
-		mods = "CMD",
-		action = wezterm.action.ResetFontSize,
-	},
-}
-
--- マウス設定
-config.mouse_bindings = {
-	-- 右クリックでペースト
-	{
-		event = { Down = { streak = 1, button = "Right" } },
-		mods = "NONE",
-		action = wezterm.action.PasteFrom("Clipboard"),
-	},
-}
+config.keys = keybindings.keys
+config.mouse_bindings = keybindings.mouse_bindings
 
 return config
 
