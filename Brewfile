@@ -21,6 +21,7 @@ brew "wget"
 brew "zsh-completions"
 brew "docker"
 brew "fd"
+brew "stylua"
 
 # Apps
 cask "wezterm@nightly"
