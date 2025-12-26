@@ -25,10 +25,10 @@ brew "stylua"
 
 # Apps
 cask "wezterm@nightly"
-cask "neovide"
+cask "neovide-app"
 cask "visual-studio-code"
 cask "cursor"
-cask "google-cloud-sdk"
+cask "gcloud-cli"
 cask "tableplus"
 cask "sequel-ace"
 cask "google-japanese-ime"
