@@ -7,6 +7,18 @@ on:
     branches: [main]
 
 jobs:
+  shellcheck:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@00b27aa7cb85167568cb48a3838b75f4265f2bca # 2.0.0
+        with:
+          scandir: "./scripts"
+          additional_files: "setup.sh"
+
   stylua:
     name: StyLua
     runs-on: ubuntu-latest
