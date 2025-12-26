@@ -135,6 +135,8 @@ jobs:
             This PR was automatically created by the Brewfile validation workflow.
           branch: chore/remove-unavailable-packages
           delete-branch: true
+          reviewers: fujiwarah
+          labels: unavailable brew package found
 
       - name: Fail on validation errors (push/PR only)
         if: steps.check.outputs.errors > 0 && github.event_name != 'schedule' && github.event_name != 'workflow_dispatch'
