@@ -20,6 +20,9 @@ ln -sfn "$DOTFILES_DIR/nvim" "$HOME/.config/nvim"
 echo "-> Linking karabiner"
 ln -sfn "$DOTFILES_DIR/karabiner" "$HOME/.config/karabiner"
 
+echo "-> Linking wezterm"
+ln -sfn "$DOTFILES_DIR/wezterm" "$HOME/.config/wezterm"
+
 echo "-> Creating ~/.local/bin directory"
 mkdir -p "$HOME/.local/bin"
 

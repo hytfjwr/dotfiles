@@ -23,6 +23,7 @@ brew "docker"
 brew "fd"
 
 # Apps
+cask "wezterm@nightly"
 cask "warp"
 cask "neovide"
 cask "visual-studio-code"
