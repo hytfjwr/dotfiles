@@ -25,7 +25,6 @@ brew "stylua"
 
 # Apps
 cask "wezterm@nightly"
-cask "warp"
 cask "neovide"
 cask "visual-studio-code"
 cask "cursor"
