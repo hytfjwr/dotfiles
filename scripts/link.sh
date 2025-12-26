@@ -25,6 +25,12 @@ ln -sfn "$DOTFILES_DIR/karabiner" "$HOME/.config/karabiner"
 info "Linking wezterm"
 ln -sfn "$DOTFILES_DIR/wezterm" "$HOME/.config/wezterm"
 
+info "Creating ~/.config/mise directory"
+mkdir -p "$HOME/.config/mise"
+
+info "Linking mise config"
+ln -sfn "$DOTFILES_DIR/mise/config.toml" "$HOME/.config/mise/config.toml"
+
 info "Creating ~/.local/bin directory"
 mkdir -p "$HOME/.local/bin"
 

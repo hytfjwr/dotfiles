@@ -14,15 +14,14 @@ fi
 alias v="nvim"
 alias vim="nvim"
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-export PATH="/opt/homebrew/opt/php@8.1/bin:$PATH"
-export PATH="/opt/homebrew/opt/php@8.1/sbin:$PATH"
 export LANG=ja_JP.UTF-8
 
 . "$HOME/.local/bin/env"
 export PATH="/opt/homebrew/opt/ansible@10/bin:$PATH"
-export PYENV_ROOT="$HOME/.pyenv"
-export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init -)"
+export PATH="/opt/homebrew/opt/bison/bin:$PATH"
+
+# mise - universal version manager
+eval "$(mise activate zsh)"
 
 # The following lines have been added by Docker Desktop to enable Docker CLI completions.
 fpath=($HOME/.docker/completions $fpath)
@@ -52,10 +51,6 @@ esac
 
 # neovide
 alias nv='neovide'
-
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
 # bun completions
 [ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
