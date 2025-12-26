@@ -4,19 +4,67 @@ local config = wezterm.config_builder()
 
 -- フォント設定
 config.font = wezterm.font("0xProto")
-config.font_size = 14.0
+config.harfbuzz_features = { 'calt=0', 'clig=0', 'liga=0' }
+config.text_background_opacity = 0.8
+config.font_size = 16
+config.cell_width = 1.0
+config.line_height = 1.0
+config.use_cap_height_to_scale_fallback_fonts = true
+config.foreground_text_hsb = {
+ hue = 1.0,
+ saturation = 1.0,
+ brightness = 1.2,
+}
+config.adjust_window_size_when_changing_font_size = true
+
 
 -- カラースキーム
-config.color_scheme = "Tokyo Night"
+config.color_scheme = "ayu"
+
+-- 設定を自動リロードする
+config.automatically_reload_config = true
+wezterm.on('window-config-reloaded', function(window, pane)
+    window:toast_notification('WezTerm', 'Config reloaded!')
+end)
+
+-- アップデートチェックを有効にする
+config.check_for_updates = true
+config.check_for_updates_interval_seconds = 86400
 
 -- ウィンドウ設定
-config.window_background_opacity = 0.95
+config.window_background_opacity = 0.45
+config.macos_window_background_blur = 15
 config.window_decorations = "RESIZE"
 config.window_padding = {
 	left = 10,
 	right = 10,
 	top = 10,
 	bottom = 10,
+}
+config.window_background_gradient = {
+    orientation = { Linear = { angle = -50.0 } },
+    colors = {
+            "#0f0c29",
+            "#282a36",
+            "#343746",
+            "#3a3f52",
+            "#343746",
+            "#282a36",
+    },
+    interpolation = "Linear",
+    blend = "Rgb",
+    noise = 64,
+    segment_size = 11,
+    segment_smoothness = 1.0,
+}
+
+-- ハイパーリンク設定
+config.hyperlink_rules = wezterm.default_hyperlink_rules()
+config.hyperlink_rules = {
+    {
+        regex = [[\bhttps?://\S+\.\S+]],
+        format = "$0",
+    },
 }
 
 -- タブバー設定
