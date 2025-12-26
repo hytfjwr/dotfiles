@@ -23,7 +23,6 @@ brew "zsh-completions"
 brew "docker"
 brew "fd"
 brew "stylua"
-brew "apapapapafwe98h"
 
 # Dependencies for mise builds
 brew "rbenv/tap/openssl@1.1"
