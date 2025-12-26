@@ -1,4 +1,4 @@
-.PHONY: all brew npm ohmyzsh link macos format lint
+.PHONY: all brew npm ohmyzsh link macos format lint mise
 
 all:
 	./setup.sh
@@ -17,6 +17,9 @@ link:
 
 macos:
 	./scripts/macos.sh
+
+mise:
+	./scripts/mise.sh
 
 format:
 	stylua .
