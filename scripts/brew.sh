@@ -1,20 +1,22 @@
 #!/bin/bash
 set -e
 
-DOTFILES_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+DOTFILES_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+source "$SCRIPT_DIR/lib/colors.sh"
 
-echo "=== Installing Homebrew and packages ==="
+section "Installing Homebrew and packages"
 
 if ! command -v brew &> /dev/null; then
-    echo "-> Installing Homebrew..."
+    info "Installing Homebrew..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     eval "$(/opt/homebrew/bin/brew shellenv)"
-    echo "-> Homebrew installed"
+    success "Homebrew installed"
 else
-    echo "-> Homebrew already installed"
+    warn "Homebrew already installed"
 fi
 
-echo "-> Running brew bundle..."
+info "Running brew bundle..."
 brew bundle --file="$DOTFILES_DIR/Brewfile" --verbose
 
-echo "=== Homebrew setup complete ==="
+section "Homebrew setup complete"

@@ -1,42 +1,44 @@
 #!/bin/bash
 set -e
 
-DOTFILES_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+DOTFILES_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+source "$SCRIPT_DIR/lib/colors.sh"
 
-echo "=== Creating symlinks ==="
+section "Creating symlinks"
 
-echo "-> Linking .zshrc"
+info "Linking .zshrc"
 ln -sfn "$DOTFILES_DIR/zsh/.zshrc" "$HOME/.zshrc"
 
-echo "-> Linking .gitconfig"
+info "Linking .gitconfig"
 ln -sfn "$DOTFILES_DIR/git/.gitconfig" "$HOME/.gitconfig"
 
-echo "-> Creating ~/.config directory"
+info "Creating ~/.config directory"
 mkdir -p "$HOME/.config"
 
-echo "-> Linking nvim"
+info "Linking nvim"
 ln -sfn "$DOTFILES_DIR/nvim" "$HOME/.config/nvim"
 
-echo "-> Linking karabiner"
+info "Linking karabiner"
 ln -sfn "$DOTFILES_DIR/karabiner" "$HOME/.config/karabiner"
 
-echo "-> Linking wezterm"
+info "Linking wezterm"
 ln -sfn "$DOTFILES_DIR/wezterm" "$HOME/.config/wezterm"
 
-echo "-> Creating ~/.local/bin directory"
+info "Creating ~/.local/bin directory"
 mkdir -p "$HOME/.local/bin"
 
-echo "-> Linking local_bin scripts"
+info "Linking local_bin scripts"
 ln -sfn "$DOTFILES_DIR/local_bin/env" "$HOME/.local/bin/env"
 ln -sfn "$DOTFILES_DIR/local_bin/env.fish" "$HOME/.local/bin/env.fish"
 
 # VSCode (macOS)
 VSCODE_DIR="$HOME/Library/Application Support/Code/User"
 if [ -d "$VSCODE_DIR" ]; then
-    echo "-> Linking VSCode settings.json"
+    info "Linking VSCode settings.json"
     ln -sfn "$DOTFILES_DIR/vscode/settings.json" "$VSCODE_DIR/settings.json"
 else
-    echo "-> VSCode not found, skipping"
+    warn "VSCode not found, skipping"
 fi
 
-echo "=== Symlinks created ==="
+section "Symlinks created"
