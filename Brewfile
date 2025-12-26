@@ -20,6 +20,7 @@ brew "gzip"
 brew "wget"
 brew "zsh-completions"
 brew "docker"
+brew "fd"
 
 # Apps
 cask "warp"
