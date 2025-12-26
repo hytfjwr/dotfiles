@@ -26,3 +26,4 @@ format:
 
 lint:
 	stylua --check .
+	cd scripts && shellcheck -x *.sh lib/*.sh ../setup.sh
