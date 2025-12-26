@@ -3,7 +3,6 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 DOTFILES_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-# shellcheck source=lib/colors.sh
 source "$SCRIPT_DIR/lib/colors.sh"
 
 section "Installing Homebrew and packages"

@@ -1,0 +1,2 @@
+# SC1091: Not following sourced files (dynamic paths can't be resolved statically)
+disable=SC1091
