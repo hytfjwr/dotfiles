@@ -15,8 +15,8 @@ config.foreground_text_hsb = {
  saturation = 1.0,
  brightness = 1.2,
 }
-config.adjust_window_size_when_changing_font_size = true
-
+config.adjust_window_size_when_changing_font_size = false
+config.use_ime = true
 
 -- カラースキーム
 config.color_scheme = "ayu"
@@ -118,6 +118,38 @@ config.keys = {
 		key = "w",
 		mods = "CMD",
 		action = wezterm.action.CloseCurrentPane({ confirm = true }),
+	},
+	-- タブ移動（方向キー）
+	{
+		key = "LeftArrow",
+		mods = "CMD|SHIFT",
+		action = wezterm.action.ActivateTabRelative(-1),
+	},
+	{
+		key = "RightArrow",
+		mods = "CMD|SHIFT",
+		action = wezterm.action.ActivateTabRelative(1),
+	},
+	-- フォントサイズ拡大・縮小
+	{
+		key = "+",
+		mods = "CMD",
+		action = wezterm.action.IncreaseFontSize,
+	},
+	{
+		key = "=",
+		mods = "CMD",
+		action = wezterm.action.IncreaseFontSize,
+	},
+	{
+		key = "-",
+		mods = "CMD",
+		action = wezterm.action.DecreaseFontSize,
+	},
+	{
+		key = "0",
+		mods = "CMD",
+		action = wezterm.action.ResetFontSize,
 	},
 }
 
