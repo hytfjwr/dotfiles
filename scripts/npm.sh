@@ -1,12 +1,15 @@
 #!/bin/bash
 set -e
 
-echo "=== Installing npm packages ==="
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$SCRIPT_DIR/lib/colors.sh"
 
-echo "-> Installing @anthropic-ai/claude-code..."
+section "Installing npm packages"
+
+info "Installing @anthropic-ai/claude-code..."
 npm install -g @anthropic-ai/claude-code
 
-echo "-> Installing ccusage..."
+info "Installing ccusage..."
 npm install -g ccusage
 
-echo "=== npm setup complete ==="
+section "npm setup complete"

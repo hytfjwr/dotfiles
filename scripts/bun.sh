@@ -1,16 +1,19 @@
 #!/bin/bash
 set -e
 
-DOTFILES_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+DOTFILES_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+source "$SCRIPT_DIR/lib/colors.sh"
+
 ZSHRC_FILE="$DOTFILES_DIR/zsh/.zshrc"
 BUN_PATH_SETTING='export PATH="$BUN_INSTALL/bin:$PATH"'
 
-echo "=== Installing bun ==="
+section "Installing bun"
 
 if command -v bun &> /dev/null; then
-    echo "-> bun already installed: $(bun --version)"
+    warn "bun already installed: $(bun --version)"
 else
-    echo "-> Installing bun..."
+    info "Installing bun..."
     curl -fsSL https://bun.sh/install | bash
 fi
 
@@ -21,15 +24,15 @@ fi
 
 # Check if bun path is already in zshrc
 if ! grep -q "BUN_INSTALL" "$ZSHRC_FILE" 2>/dev/null; then
-    echo "-> Adding bun path to .zshrc..."
+    info "Adding bun path to .zshrc..."
     echo "" >> "$ZSHRC_FILE"
     echo "# bun" >> "$ZSHRC_FILE"
     echo "export BUN_INSTALL=\"\$HOME/.bun\"" >> "$ZSHRC_FILE"
     echo "$BUN_PATH_SETTING" >> "$ZSHRC_FILE"
-    echo "-> bun path added to .zshrc"
+    success "bun path added to .zshrc"
 else
-    echo "-> bun path already configured in .zshrc"
+    warn "bun path already configured in .zshrc"
 fi
 
-echo "-> bun installed: $(bun --version)"
-echo "=== bun setup complete ==="
+success "bun installed: $(bun --version)"
+section "bun setup complete"
