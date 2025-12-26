@@ -76,12 +76,13 @@
                                 "conditions": [
                                     {
                                         "bundle_identifiers": [
-                                            "^dev\\.warp\\.Warp-Stable$"
+                                            "^dev\\.warp\\.Warp-Stable$",
+                                            "^com\\.github\\.wez\\.wezterm$"
                                         ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
-                                "description": "Change Shift + Enter to Ctrl + J (Only in Warp)",
+                                "description": "Change Shift + Enter to Ctrl + J (Warp and WezTerm)",
                                 "from": {
                                     "key_code": "return_or_enter",
                                     "modifiers": { "mandatory": ["shift"] }
