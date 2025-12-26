@@ -23,6 +23,15 @@ jobs:
       - name: Update Homebrew
         run: brew update
 
+      - name: Add taps from Brewfile
+        shell: bash
+        run: |
+          while read -r line; do
+            tap_name=$(echo "$line" | sed 's/tap "\([^"]*\)".*/\1/')
+            echo "Adding tap: $tap_name"
+            brew tap "$tap_name" || echo "::warning::Failed to tap $tap_name"
+          done < <(grep -E "^tap " Brewfile || true)
+
       - name: Check package availability
         id: check
         shell: bash
