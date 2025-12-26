@@ -24,18 +24,14 @@ jobs:
         run: brew update
 
       - name: Check package availability
+        id: check
         shell: bash
         run: |
           echo "## Brewfile Validation Results" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
 
-          error_file=$(mktemp)
-          echo "0" > "$error_file"
-
-          add_error() {
-            count=$(cat "$error_file")
-            echo $((count + 1)) > "$error_file"
-          }
+          removed_file=$(mktemp)
+          touch "$removed_file"
 
           # Check taps
           echo "### Taps" >> "$GITHUB_STEP_SUMMARY"
@@ -45,7 +41,7 @@ jobs:
               echo "- ✅ $tap_name" >> "$GITHUB_STEP_SUMMARY"
             else
               echo "- ❌ $tap_name (not found)" >> "$GITHUB_STEP_SUMMARY"
-              add_error
+              echo "tap:$tap_name" >> "$removed_file"
             fi
           done < <(grep -E "^tap " Brewfile || true)
 
@@ -59,7 +55,7 @@ jobs:
             else
               echo "- ❌ $pkg (not found)" >> "$GITHUB_STEP_SUMMARY"
               echo "::error::Formula not found: $pkg"
-              add_error
+              echo "brew:$pkg" >> "$removed_file"
             fi
           done < <(grep -E "^brew " Brewfile || true)
 
@@ -73,15 +69,73 @@ jobs:
             else
               echo "- ❌ $cask (not found)" >> "$GITHUB_STEP_SUMMARY"
               echo "::error::Cask not found: $cask"
-              add_error
+              echo "cask:$cask" >> "$removed_file"
             fi
           done < <(grep -E "^cask " Brewfile || true)
 
-          # Exit with error if any packages not found
-          errors=$(cat "$error_file")
-          rm -f "$error_file"
+          # Count errors and set outputs
+          errors=$(wc -l < "$removed_file" | tr -d ' ')
+          echo "errors=$errors" >> "$GITHUB_OUTPUT"
+
           if [ "$errors" -gt 0 ]; then
             echo "" >> "$GITHUB_STEP_SUMMARY"
             echo "**$errors package(s) not found in Homebrew**" >> "$GITHUB_STEP_SUMMARY"
-            exit 1
+
+            # Save removed packages for next step
+            {
+              echo 'removed<<EOF'
+              cat "$removed_file"
+              echo 'EOF'
+            } >> "$GITHUB_OUTPUT"
           fi
+
+          rm -f "$removed_file"
+
+      - name: Remove unavailable packages from Brewfile
+        if: steps.check.outputs.errors > 0 && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+        shell: bash
+        run: |
+          echo "${{ steps.check.outputs.removed }}" | while read -r line; do
+            [ -z "$line" ] && continue
+            type=$(echo "$line" | cut -d: -f1)
+            name=$(echo "$line" | cut -d: -f2)
+            echo "Removing $type: $name"
+            case "$type" in
+              tap)
+                sed -i '' "/^tap \"$name\"/d" Brewfile
+                ;;
+              brew)
+                # Escape special characters for sed
+                escaped_name=$(echo "$name" | sed 's/[/@]/\\&/g')
+                sed -i '' "/^brew \"$escaped_name\"/d" Brewfile
+                ;;
+              cask)
+                escaped_name=$(echo "$name" | sed 's/[@]/\\&/g')
+                sed -i '' "/^cask \"$escaped_name\"/d" Brewfile
+                ;;
+            esac
+          done
+
+      - name: Create Pull Request
+        if: steps.check.outputs.errors > 0 && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+        uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: remove unavailable Homebrew packages"
+          title: "chore: remove unavailable Homebrew packages"
+          body: |
+            ## Summary
+
+            The following packages are no longer available in Homebrew and have been removed from the Brewfile:
+
+            ```
+            ${{ steps.check.outputs.removed }}
+            ```
+
+            This PR was automatically created by the Brewfile validation workflow.
+          branch: chore/remove-unavailable-packages
+          delete-branch: true
+
+      - name: Fail on validation errors (push/PR only)
+        if: steps.check.outputs.errors > 0 && github.event_name != 'schedule' && github.event_name != 'workflow_dispatch'
+        run: exit 1
