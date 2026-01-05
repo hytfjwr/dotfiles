@@ -3,6 +3,27 @@ local wezterm = require("wezterm")
 local keybindings = require("keybindings")
 local config = wezterm.config_builder()
 
+-- resurrect.wezterm プラグイン
+local resurrect = wezterm.plugin.require("https://github.com/MLFlexer/resurrect.wezterm")
+
+-- 起動時にworkspace状態を復元
+wezterm.on("gui-startup", resurrect.state_manager.resurrect_on_gui_startup)
+
+-- 定期保存
+resurrect.state_manager.periodic_save({
+	interval_seconds = 30,
+	save_tabs = true,
+	save_windows = true,
+	save_workspaces = true,
+})
+
+-- 定期保存完了後にcurrent_stateを更新
+wezterm.on("resurrect.state_manager.periodic_save.finished", function()
+	local workspace = wezterm.mux.get_active_workspace()
+	resurrect.state_manager.save_state(resurrect.workspace_state.get_workspace_state())
+	resurrect.state_manager.write_current_state(workspace, "workspace")
+end)
+
 -- フォント設定
 config.font = wezterm.font("0xProto")
 config.harfbuzz_features = { "calt=0", "clig=0", "liga=0" }
