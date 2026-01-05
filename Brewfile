@@ -2,6 +2,7 @@
 
 # Taps
 tap "rbenv/tap"
+tap "nikitabobko/tap"
 
 # CLI
 brew "git"
@@ -23,6 +24,7 @@ brew "zsh-completions"
 brew "docker"
 brew "fd"
 brew "stylua"
+brew "zoxide"
 
 # Dependencies for mise builds
 brew "rbenv/tap/openssl@1.1"
@@ -69,3 +71,4 @@ cask "spotify"
 cask "phpstorm"
 cask "karabiner-elements"
 cask "clipy"
+cask "nikitabobko/tap/aerospace"
