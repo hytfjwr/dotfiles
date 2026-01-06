@@ -45,7 +45,7 @@ config.color_scheme = "ayu"
 
 -- 設定を自動リロードする
 config.automatically_reload_config = true
-wezterm.on("window-config-reloaded", function(window, pane)
+wezterm.on("window-config-reloaded", function(window)
 	window:toast_notification("WezTerm", "Config reloaded!")
 end)
 
