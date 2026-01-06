@@ -13,6 +13,9 @@ ln -sfn "$DOTFILES_DIR/zsh/.zshrc" "$HOME/.zshrc"
 info "Linking .gitconfig"
 ln -sfn "$DOTFILES_DIR/git/.gitconfig" "$HOME/.gitconfig"
 
+info "Linking .aerospace.toml"
+ln -sfn "$DOTFILES_DIR/aerospace/aerospace.toml" "$HOME/.aerospace.toml"
+
 info "Creating ~/.config directory"
 mkdir -p "$HOME/.config"
 
