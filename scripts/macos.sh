@@ -30,4 +30,7 @@ killall Finder
 info "Restarting Dock..."
 killall Dock
 
+info "Starting sketchybar service"
+brew services start sketchybar
+
 section "macOS settings applied"

@@ -3,6 +3,7 @@
 # Taps
 tap "rbenv/tap"
 tap "nikitabobko/tap"
+tap "FelixKratz/formulae"
 
 # CLI
 brew "git"
@@ -25,6 +26,7 @@ brew "docker"
 brew "fd"
 brew "stylua"
 brew "zoxide"
+brew "sketchybar"
 
 # Dependencies for mise builds
 brew "rbenv/tap/openssl@1.1"
@@ -73,3 +75,4 @@ cask "karabiner-elements"
 cask "clipy"
 cask "nikitabobko/tap/aerospace"
 cask "alt-tab"
+cask "font-hack-nerd-font"
