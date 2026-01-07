@@ -25,7 +25,7 @@ wezterm.on("resurrect.state_manager.periodic_save.finished", function()
 end)
 
 -- フォント設定
-config.font = wezterm.font("0xProto")
+config.font = wezterm.font_with_fallback({ "0xProto", "Hiragino Sans" })
 config.harfbuzz_features = { "calt=0", "clig=0", "liga=0" }
 config.text_background_opacity = 0.8
 config.font_size = 16
