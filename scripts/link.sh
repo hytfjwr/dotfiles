@@ -28,6 +28,9 @@ ln -sfn "$DOTFILES_DIR/karabiner" "$HOME/.config/karabiner"
 info "Linking wezterm"
 ln -sfn "$DOTFILES_DIR/wezterm" "$HOME/.config/wezterm"
 
+info "Linking sketchybar"
+ln -sfn "$DOTFILES_DIR/sketchybar" "$HOME/.config/sketchybar"
+
 info "Creating ~/.config/mise directory"
 mkdir -p "$HOME/.config/mise"
 
