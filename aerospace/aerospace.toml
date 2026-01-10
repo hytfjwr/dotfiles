@@ -58,7 +58,9 @@ on-mode-changed = []
 # Assign workspaces to specific monitors
 # See: https://nikitabobko.github.io/AeroSpace/guide#assign-workspaces-to-monitors
 [workspace-to-monitor-force-assignment]
+9 = 'built-in'
 S = 'built-in'
+M = 'built-in'
 
 # Gaps between windows (inner-*) and between monitor edges (outer-*).
 # Possible values:
@@ -251,7 +253,26 @@ run = 'move-node-to-workspace 3'
 if.app-id = 'com.google.Chrome'
 run = 'move-node-to-workspace 3'
 
+# Database Tools -> Workspace 4
+[[on-window-detected]]
+if.app-id = 'com.sequel-ace.sequel-ace'  # Sequel Ace
+run = 'move-node-to-workspace 4'
+
+[[on-window-detected]]
+if.app-id = 'com.tinyapp.TablePlus'  # TablePlus
+run = 'move-node-to-workspace 4'
+
+# Bruno -> Workspace 9 (MacBook built-in display)
+[[on-window-detected]]
+if.app-id = 'com.usebruno.app'
+run = 'move-node-to-workspace 9'
+
 # Slack -> Workspace S (MacBook built-in display)
 [[on-window-detected]]
 if.app-id = 'com.tinyspeck.slackmacgap'
 run = 'move-node-to-workspace S'
+
+# Spotify -> Workspace M (MacBook built-in display)
+[[on-window-detected]]
+if.app-id = 'com.spotify.client'
+run = 'move-node-to-workspace M'
