@@ -158,5 +158,33 @@
         "/var/folders/j6/k7hlmd7n0_q7b0dwhys8wrj40000gp/T/postman-folder-pre-request.instructions.md": true,
         "/var/folders/j6/k7hlmd7n0_q7b0dwhys8wrj40000gp/T/postman-http-request-post-response.instructions.md": true,
         "/var/folders/j6/k7hlmd7n0_q7b0dwhys8wrj40000gp/T/postman-http-request-pre-request.instructions.md": true
-    }
+    },
+    "searchEverywhere.exclude": [
+        "**/.git",
+        "**/.svn",
+        "**/.hg",
+        "**/.CVS",
+        "**/.DS_Store",
+        "**/package-lock.json",
+        "**/yarn.lock",
+        "**/node_modules/**",
+        "**/bower_components/**",
+        "**/coverage/**",
+        "**/.vscode/**",
+        "**/.vscode-test/**",
+        "**/.history/**",
+        "**/.cache/**",
+        "**/.cache-loader/**",
+        "**/out/**",
+        "**/dist/**",
+        "**/vendor/**"
+    ],
+    "searchEverywhere.include": "**/*.{js,jsx,ts,tsx,php,blade}",
+    "searchEverywhere.itemsFilter": {
+        "allowedKinds": [],
+        "ignoredKinds": [],
+        "ignoredNames": []
+    },
+    "searchEverywhere.shouldDisplayNotificationInStatusBar": true,
+    "searchEverywhere.shouldHighlightSymbol": true
 }
