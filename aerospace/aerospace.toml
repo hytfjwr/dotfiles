@@ -231,6 +231,10 @@ run = 'move-node-to-workspace 1'
 if.app-id = 'com.apple.Terminal'
 run = 'move-node-to-workspace 1'
 
+[[on-window-detected]]
+if.app-id = 'com.neovide.neovide'
+run = 'move-node-to-workspace 1'
+
 # Development Tools -> Workspace 2
 [[on-window-detected]]
 if.app-id = 'com.todesktop.230313mzl4w4u92'  # Cursor
