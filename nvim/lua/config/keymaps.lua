@@ -13,3 +13,12 @@ vim.keymap.set("i", "<D-v>", function()
 end, { desc = "Paste with Cmd+v" })
 
 vim.keymap.set("n", "<D-v>", "+p", { desc = "Paste with Cmd+V" })
+
+-- Shift Shiftで検索
+vim.keymap.set("n", "<leader><leader>", function()
+  Snacks.picker.smart()
+end, { desc = "Search Files" })
+
+vim.keymap.set("n", "<leader>sT", function()
+  require("telescope.builtin").treesitter()
+end, { desc = "Search Symbols (Treesitter)" })
