@@ -49,8 +49,21 @@ VSCODE_DIR="$HOME/Library/Application Support/Code/User"
 if [ -d "$VSCODE_DIR" ]; then
     info "Linking VSCode settings.json"
     ln -sfn "$DOTFILES_DIR/vscode/settings.json" "$VSCODE_DIR/settings.json"
+    info "Linking VSCode keybindings.json"
+    ln -sfn "$DOTFILES_DIR/vscode/keybindings.json" "$VSCODE_DIR/keybindings.json"
 else
     warn "VSCode not found, skipping"
+fi
+
+# Cursor (macOS)
+CURSOR_DIR="$HOME/Library/Application Support/Cursor/User"
+if [ -d "$CURSOR_DIR" ]; then
+    info "Linking Cursor settings.json"
+    ln -sfn "$DOTFILES_DIR/vscode/settings.json" "$CURSOR_DIR/settings.json"
+    info "Linking Cursor keybindings.json"
+    ln -sfn "$DOTFILES_DIR/vscode/keybindings.json" "$CURSOR_DIR/keybindings.json"
+else
+    warn "Cursor not found, skipping"
 fi
 
 section "Symlinks created"
