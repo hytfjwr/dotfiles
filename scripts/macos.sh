@@ -24,11 +24,17 @@ defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
 info "Disable Dock auto-hide animation delay"
 defaults write com.apple.dock autohide-time-modifier -int 0
 
+info "Auto-hide MenuBar"
+defaults write NSGlobalDomain _HIHideMenuBar -bool true
+
 info "Restarting Finder..."
 killall Finder
 
 info "Restarting Dock..."
 killall Dock
+
+info "Restarting SystemUIServer to apply MenuBar settings..."
+killall SystemUIServer || true
 
 info "Starting sketchybar service"
 brew services start sketchybar
