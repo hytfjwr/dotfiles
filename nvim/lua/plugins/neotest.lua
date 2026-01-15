@@ -7,6 +7,7 @@ return {
       "antoinemadec/FixCursorHold.nvim",
       "nvim-treesitter/nvim-treesitter",
       "olimorris/neotest-phpunit",
+      "marilari88/neotest-vitest",
     },
     config = function()
       local neotest = require("neotest")
@@ -14,21 +15,19 @@ return {
       neotest.setup({
         adapters = {
           require("neotest-phpunit")({
+            -- TODO FIX THIS
             phpunit_cmd = function()
-              -- Docker Composeでテストを実行
               return { "docker", "compose", "exec", "-T", "-w", "/work", "app", "vendor/bin/phpunit" }
             end,
             root_files = { "composer.json", "phpunit.xml", ".gitignore", "docker-compose.yml" },
             filter_dirs = { ".git", "node_modules", "vendor" },
-            -- テストファイルのパスをコンテナ内のパスに変換
             phpunit_test_command = function(path)
-              -- ホストのプロジェクトルートを取得
               local cwd = vim.fn.getcwd()
-              -- 相対パスに変換
               local relative_path = path:gsub("^" .. cwd .. "/", "")
               return relative_path
             end,
           }),
+          require("neotest-vitest"),
         },
       })
 
