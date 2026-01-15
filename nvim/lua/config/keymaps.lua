@@ -22,3 +22,13 @@ end, { desc = "Search Files" })
 vim.keymap.set("n", "<leader>sT", function()
   require("telescope.builtin").treesitter()
 end, { desc = "Search Symbols (Treesitter)" })
+
+-- ペイン移動: Option + Cmd + 方向キー
+vim.keymap.set("n", "<D-M-Left>", "<C-w>h", { desc = "Move to left pane" })
+vim.keymap.set("n", "<D-M-Down>", "<C-w>j", { desc = "Move to lower pane" })
+vim.keymap.set("n", "<D-M-Up>", "<C-w>k", { desc = "Move to upper pane" })
+vim.keymap.set("n", "<D-M-Right>", "<C-w>l", { desc = "Move to right pane" })
+
+-- バッファ切り替え: Shift + Cmd + 方向キー
+vim.keymap.set("n", "<D-S-Left>", ":bprevious<CR>", { desc = "Previous buffer" })
+vim.keymap.set("n", "<D-S-Right>", ":bnext<CR>", { desc = "Next buffer" })
