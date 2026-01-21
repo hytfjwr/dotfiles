@@ -32,3 +32,33 @@ vim.keymap.set("n", "<D-M-Right>", "<C-w>l", { desc = "Move to right pane" })
 -- バッファ切り替え: Shift + Cmd + 方向キー
 vim.keymap.set("n", "<D-S-Left>", ":bprevious<CR>", { desc = "Previous buffer" })
 vim.keymap.set("n", "<D-S-Right>", ":bnext<CR>", { desc = "Next buffer" })
+
+-- 選択行の参照をClaudeCode形式でコピー: <leader>cl
+vim.keymap.set("v", "<leader>cl", function()
+  -- Gitルートを取得
+  local git_root = vim.fn.system("git rev-parse --show-toplevel"):gsub("\n", "")
+  if vim.v.shell_error ~= 0 then
+    vim.notify("Git repository not found", vim.log.levels.ERROR)
+    return
+  end
+
+  -- 現在のファイルの絶対パスを取得
+  local file_path = vim.fn.expand("%:p")
+
+  -- Gitルートからの相対パスを計算
+  local relative_path = file_path:sub(#git_root + 2)
+
+  -- 選択範囲の行番号を取得
+  local start_line = vim.fn.line("v")
+  local end_line = vim.fn.line(".")
+  if start_line > end_line then
+    start_line, end_line = end_line, start_line
+  end
+
+  -- 参照文字列を作成
+  local reference = string.format("@%s#L%d-%d", relative_path, start_line, end_line)
+
+  -- クリップボードにコピー
+  vim.fn.setreg("+", reference)
+  vim.notify("Copied: " .. reference, vim.log.levels.INFO)
+end, { desc = "Copy line reference (Cursor format)" })
