@@ -29,10 +29,6 @@ autoload -Uz compinit
 compinit
 # End of Docker CLI completions
 
-# CLAUDE API SETTINGS
-export CLAUDE_CODE_USE_VERTEX=1
-export CLOUD_ML_REGION=us-east5
-export ANTHROPIC_VERTEX_PROJECT_ID=anthropic-vertexai
 
 # The next line updates PATH for the Google Cloud SDK.
 if [ -f "$HOME/google-cloud-sdk/path.zsh.inc" ]; then . "$HOME/google-cloud-sdk/path.zsh.inc"; fi
