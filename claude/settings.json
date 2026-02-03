@@ -1,0 +1,9 @@
+{
+  "enabledPlugins": {
+    "php-lsp@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true,
+    "code-simplifier@claude-plugins-official": true
+  },
+  "language": "思考・調査するときは英語、ユーザーと対話するとき日本語"
+}

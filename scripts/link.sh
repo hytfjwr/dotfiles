@@ -44,6 +44,12 @@ info "Linking local_bin scripts"
 ln -sfn "$DOTFILES_DIR/local_bin/env" "$HOME/.local/bin/env"
 ln -sfn "$DOTFILES_DIR/local_bin/env.fish" "$HOME/.local/bin/env.fish"
 
+info "Creating ~/.claude directory"
+mkdir -p "$HOME/.claude"
+
+info "Linking Claude Code settings"
+ln -sfn "$DOTFILES_DIR/claude/settings.json" "$HOME/.claude/settings.json"
+
 # VSCode (macOS)
 VSCODE_DIR="$HOME/Library/Application Support/Code/User"
 if [ -d "$VSCODE_DIR" ]; then
