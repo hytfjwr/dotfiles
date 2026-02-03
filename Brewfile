@@ -27,6 +27,7 @@ brew "fd"
 brew "bat"
 brew "stylua"
 brew "zoxide"
+brew "im-select"
 brew "sketchybar"
 
 # Dependencies for mise builds
