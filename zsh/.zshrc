@@ -60,3 +60,6 @@ eval "$(zoxide init zsh)"
 
 # lazygit
 alias lg="lazygit"
+
+# bat - cat with syntax highlighting
+alias cat="bat"
