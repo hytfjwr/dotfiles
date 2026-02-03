@@ -11,13 +11,7 @@
                                     "key_code": "caps_lock",
                                     "modifiers": { "mandatory": ["left_command"] }
                                 },
-                                "to": [
-                                    {
-                                        "select_input_source": {
-                                            "input_source_id": "com.apple.keylayout.ABC"
-                                        }
-                                    }
-                                ],
+                                "to": [{ "select_input_source": { "input_source_id": "com.apple.keylayout.ABC" } }],
                                 "type": "basic"
                             },
                             {
@@ -28,8 +22,8 @@
                                 "to": [
                                     {
                                         "select_input_source": {
-                                            "input_source_id": "com.google.inputmethod.Japanese.base",
-                                            "input_mode_id": "com.apple.inputmethod.Japanese"
+                                            "input_mode_id": "com.apple.inputmethod.Japanese",
+                                            "input_source_id": "com.google.inputmethod.Japanese.base"
                                         }
                                     }
                                 ],
