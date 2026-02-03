@@ -4,6 +4,7 @@
 tap "rbenv/tap"
 tap "nikitabobko/tap"
 tap "FelixKratz/formulae"
+tap "daipeihust/tap"
 
 # CLI
 brew "git"
@@ -27,7 +28,7 @@ brew "fd"
 brew "bat"
 brew "stylua"
 brew "zoxide"
-brew "im-select"
+brew "daipeihust/tap/im-select"
 brew "sketchybar"
 
 # Dependencies for mise builds
