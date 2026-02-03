@@ -57,6 +57,8 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 
 # zoxide - smarter cd command
 eval "$(zoxide init zsh)"
+alias cd="z"
+alias cdi="zi"
 
 # lazygit
 alias lg="lazygit"
