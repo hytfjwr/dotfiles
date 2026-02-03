@@ -1,5 +1,5 @@
 [tools]
-node = "lts"
+node = "20"
 python = "3.12"
 php = "8.4"
 go = "latest"
