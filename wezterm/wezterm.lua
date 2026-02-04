@@ -137,6 +137,13 @@ config.tab_bar_at_bottom = false
 -- スクロール設定
 config.scrollback_lines = 10000
 
+-- 非アクティブペインの輝度を下げる
+config.inactive_pane_hsb = {
+	hue = 1.0,
+	saturation = 0.5,
+	brightness = 0.3,
+}
+
 -- キーバインド
 config.keys = keybindings.keys
 config.mouse_bindings = keybindings.mouse_bindings
