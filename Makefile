@@ -1,4 +1,4 @@
-.PHONY: all brew npm ohmyzsh link macos format lint mise
+.PHONY: all brew npm claude ohmyzsh link macos format lint mise
 
 all:
 	./setup.sh
@@ -8,6 +8,9 @@ brew:
 
 npm:
 	./scripts/npm.sh
+
+claude:
+	./scripts/claude.sh
 
 ohmyzsh:
 	./scripts/ohmyzsh.sh
