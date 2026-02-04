@@ -33,7 +33,7 @@ vim.keymap.set("n", "<D-M-Right>", "<C-w>l", { desc = "Move to right pane" })
 vim.keymap.set("n", "<D-S-Left>", ":bprevious<CR>", { desc = "Previous buffer" })
 vim.keymap.set("n", "<D-S-Right>", ":bnext<CR>", { desc = "Next buffer" })
 
--- 選択行の参照をClaudeCode形式でコピー: <leader>cl
+-- 選択行の参照をClaudeCode形式でコピーし、Claude Codeペインに送信: <leader>cl
 vim.keymap.set("v", "<leader>cl", function()
   -- Gitルートを取得
   local git_root = vim.fn.system("git rev-parse --show-toplevel"):gsub("\n", "")
@@ -60,5 +60,20 @@ vim.keymap.set("v", "<leader>cl", function()
 
   -- クリップボードにコピー
   vim.fn.setreg("+", reference)
-  vim.notify("Copied: " .. reference, vim.log.levels.INFO)
-end, { desc = "Copy line reference (Cursor format)" })
+
+  -- Claude Codeペインに送信
+  local pane_id_file = "/tmp/claude_pane_id"
+  local f = io.open(pane_id_file, "r")
+  if f then
+    local pane_id = f:read("*all"):gsub("%s+", "")
+    f:close()
+    if pane_id ~= "" then
+      vim.fn.system("wezterm cli send-text --pane-id " .. pane_id .. " " .. vim.fn.shellescape(reference))
+      vim.notify("Sent to Claude: " .. reference, vim.log.levels.INFO)
+    else
+      vim.notify("Copied (no Claude pane): " .. reference, vim.log.levels.WARN)
+    end
+  else
+    vim.notify("Copied (no Claude pane): " .. reference, vim.log.levels.WARN)
+  end
+end, { desc = "Send line reference to Claude Code pane" })

@@ -1,0 +1,11 @@
+#!/bin/bash
+# Claude Code起動コマンド
+# 現在のWezTermペインIDを保存してからClaude Codeを起動
+
+PANE_ID_FILE="/tmp/claude_pane_id"
+
+# WezTermペインIDを保存
+echo "$WEZTERM_PANE" > "$PANE_ID_FILE"
+
+# Claude Codeを起動
+exec claude "$@"
