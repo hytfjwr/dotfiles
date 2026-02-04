@@ -54,8 +54,8 @@ config.check_for_updates = true
 config.check_for_updates_interval_seconds = 86400
 
 -- ウィンドウ設定
-config.window_background_opacity = 0.45
-config.macos_window_background_blur = 15
+config.window_background_opacity = 0.55
+config.macos_window_background_blur = 20
 config.window_decorations = "RESIZE"
 config.window_padding = {
 	left = 10,
@@ -137,11 +137,11 @@ config.tab_bar_at_bottom = false
 -- スクロール設定
 config.scrollback_lines = 10000
 
--- 非アクティブペインの輝度を下げる
+-- 非アクティブペインの輝度を下げる（テキストと背景両方に適用）
 config.inactive_pane_hsb = {
 	hue = 1.0,
-	saturation = 0.5,
-	brightness = 0.3,
+	saturation = 0.7,
+	brightness = 0.45,
 }
 
 -- キーバインド
