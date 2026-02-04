@@ -43,6 +43,7 @@ mkdir -p "$HOME/.local/bin"
 info "Linking local_bin scripts"
 ln -sfn "$DOTFILES_DIR/local_bin/env" "$HOME/.local/bin/env"
 ln -sfn "$DOTFILES_DIR/local_bin/env.fish" "$HOME/.local/bin/env.fish"
+ln -sfn "$DOTFILES_DIR/local_bin/ccm" "$HOME/.local/bin/ccm"
 
 info "Creating ~/.claude directory"
 mkdir -p "$HOME/.claude"
