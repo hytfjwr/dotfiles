@@ -68,7 +68,7 @@ vim.keymap.set("v", "<leader>cl", function()
     local pane_id = f:read("*all"):gsub("%s+", "")
     f:close()
     if pane_id ~= "" then
-      vim.fn.system("wezterm cli send-text --pane-id " .. pane_id .. " " .. vim.fn.shellescape(reference))
+      vim.fn.system("wezterm cli send-text --pane-id " .. pane_id .. " " .. vim.fn.shellescape(" " .. reference .. " "))
       vim.notify("Sent to Claude: " .. reference, vim.log.levels.INFO)
     else
       vim.notify("Copied (no Claude pane): " .. reference, vim.log.levels.WARN)
