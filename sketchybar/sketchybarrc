@@ -92,9 +92,21 @@ sketchybar --add item time right \
 sketchybar --add item vpn right \
            --set vpn update_freq=5 icon=󰖂 script="$PLUGIN_DIR/vpn.sh" \
                  width=45 \
-           --add item network right \
-           --set network update_freq=2 icon=󰛳 script="$PLUGIN_DIR/network.sh" \
-                 width=115 \
+           --add item network_up right \
+           --set network_up label.font="SF Pro:Heavy:9" \
+                 icon.font="SF Pro:Heavy:9" \
+                 icon=▲ \
+                 icon.highlight_color=0xff8b0a0d \
+                 y_offset=5 \
+                 width=0 \
+                 update_freq=2 \
+                 script="$PLUGIN_DIR/network.sh" \
+           --add item network_down right \
+           --set network_down label.font="SF Pro:Heavy:9" \
+                 icon.font="SF Pro:Heavy:9" \
+                 icon=▼ \
+                 icon.highlight_color=0xff10528c \
+                 y_offset=-5 \
            --add graph memory_graph right 50 \
            --set memory_graph width=50 \
                  graph.height=26 \
