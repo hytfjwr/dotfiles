@@ -39,8 +39,9 @@ spotify_anchor=(
   popup.background.corner_radius=12
   popup.background.border_width=2
   popup.background.border_color=$BACKGROUND_BORDER
-  icon=􁁒
-  icon.font="$FONT:Regular:25.0"
+  icon=󰓇
+  icon.font="sketchybar-app-font:Regular:22.0"
+  icon.color=0xff1DB954
   label.drawing=off
   drawing=off
   y_offset=2
@@ -197,9 +198,7 @@ spotify_controls=(
 sketchybar --add event spotify_change $SPOTIFY_EVENT             \
            --add item spotify.anchor center                      \
            --set spotify.anchor "${spotify_anchor[@]}"           \
-           --subscribe spotify.anchor mouse.entered mouse.exited \
-                                     mouse.exited.global         \
-                                     spotify_change              \
+           --subscribe spotify.anchor spotify_change              \
                                                                  \
            --add item spotify.cover popup.spotify.anchor         \
            --set spotify.cover "${spotify_cover[@]}"             \
