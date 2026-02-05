@@ -139,5 +139,8 @@ sketchybar --add item vpn right \
                  width=65 \
                  click_script="open -a 'Activity Monitor'"
 
+##### Spotify Integration #####
+source "$CONFIG_DIR/items/spotify.sh"
+
 ##### Force all scripts to run the first time (never do this in a script) #####
 sketchybar --update
