@@ -30,3 +30,4 @@ format:
 lint:
 	stylua --check .
 	cd scripts && shellcheck -x *.sh lib/*.sh ../setup.sh
+	shellcheck local_bin/aerospace-fix-windows
