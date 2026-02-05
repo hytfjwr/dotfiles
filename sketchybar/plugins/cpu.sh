@@ -15,4 +15,4 @@ fi
 sketchybar --set "$NAME" label="${CPU_PERCENT}%" label.color="$COLOR"
 
 # CPUグラフにデータをプッシュ
-sketchybar --push cpu_graph "$CPU_PERCENT"
+sketchybar --push "$NAME" $(awk "BEGIN {printf \"%.2f\", $CPU_PERCENT/100}")

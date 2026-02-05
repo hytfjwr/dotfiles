@@ -88,19 +88,16 @@ sketchybar --add item time right \
            --set battery update_freq=120 script="$PLUGIN_DIR/battery.sh" \
            --subscribe battery system_woke power_source_change
 
-# システムモニター（左から右の順：VPN、ネットワーク、ディスク、メモリグラフ、メモリ、CPUグラフ、CPU）
+# システムモニター（左から右の順：VPN、ネットワーク、メモリアイコン+グラフ、CPUアイコン+グラフ）
 sketchybar --add item vpn right \
            --set vpn update_freq=5 icon=󰖂 script="$PLUGIN_DIR/vpn.sh" \
                  width=45 \
            --add item network right \
            --set network update_freq=2 icon=󰛳 script="$PLUGIN_DIR/network.sh" \
                  width=115 \
-           --add item disk right \
-           --set disk update_freq=10 icon=󰋊 script="$PLUGIN_DIR/disk.sh" \
-                 width=55 \
-                 click_script="open -a 'Activity Monitor'" \
            --add graph memory_graph right 50 \
            --set memory_graph width=50 \
+                 graph.height=26 \
                  graph.color=0xff00ff00 \
                  graph.fill_color=0x2000ff00 \
                  background.height=26 \
@@ -111,10 +108,18 @@ sketchybar --add item vpn right \
                  padding_left=0 \
                  padding_right=0 \
                  y_offset=0 \
-           --add item memory right \
-           --set memory update_freq=2 icon=󰍛 script="$PLUGIN_DIR/memory.sh" \
-                 width=65 \
+                 icon.drawing=off \
+                 label.font="SF Pro:Bold:10.0" \
+                 label.color=0xccffffff \
+                 label.padding_right=5 \
+                 update_freq=2 \
+                 script="$PLUGIN_DIR/memory.sh" \
                  click_script="open -a 'Activity Monitor'" \
+           --add item memory right \
+           --set memory icon=󰍛 \
+                 label.drawing=off \
+                 padding_left=0 \
+                 padding_right=0 \
            --add graph cpu_graph right 50 \
            --set cpu_graph width=50 \
                  graph.height=26 \
@@ -128,10 +133,18 @@ sketchybar --add item vpn right \
                  padding_left=0 \
                  padding_right=0 \
                  y_offset=0 \
+                 icon.drawing=off \
+                 label.font="SF Pro:Bold:10.0" \
+                 label.color=0xccffffff \
+                 label.padding_right=5 \
+                 update_freq=2 \
+                 script="$PLUGIN_DIR/cpu.sh" \
+                 click_script="open -a 'Activity Monitor'" \
            --add item cpu right \
-           --set cpu update_freq=2 icon=󰻠 script="$PLUGIN_DIR/cpu.sh" \
-                 width=65 \
-                 click_script="open -a 'Activity Monitor'"
+           --set cpu icon=󰻠 \
+                 label.drawing=off \
+                 padding_left=0 \
+                 padding_right=0
 
 ##### Spotify Integration #####
 source "$CONFIG_DIR/items/spotify.sh"
