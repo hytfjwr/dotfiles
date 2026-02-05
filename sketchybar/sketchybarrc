@@ -4,6 +4,7 @@
 # https://github.com/FelixKratz/dotfiles
 
 PLUGIN_DIR="$CONFIG_DIR/plugins"
+source "$CONFIG_DIR/colors.sh"
 
 ##### Bar Appearance #####
 # Configuring the general appearance of the bar.
@@ -12,7 +13,7 @@ PLUGIN_DIR="$CONFIG_DIR/plugins"
 # If you are looking for other colors, see the color picker:
 # https://felixkratz.github.io/SketchyBar/config/tricks#color-picker
 
-sketchybar --bar position=top height=40 blur_radius=30 color=0x40000000
+sketchybar --bar position=top height=44 blur_radius=30 color=0x40000000
 
 ##### Changing Defaults #####
 # We now change some default values, which are applied to all further items.
@@ -35,21 +36,14 @@ sketchybar --default "${default[@]}"
 
 ##### Adding AeroSpace Workspace Indicators #####
 # AeroSpace workspace integration
-# Displays active workspaces with app icons and window counts
 # https://nikitabobko.github.io/AeroSpace/goodies
 
 # カスタムイベントを追加
 sketchybar --add event aerospace_workspace_change \
            --add event space_windows_change
 
-# AeroSpaceワークスペース表示用のアイテムを追加
-sketchybar --add item aerospace.workspaces left \
-           --set aerospace.workspaces \
-                 script="$PLUGIN_DIR/aerospace.sh" \
-                 icon.drawing=off \
-                 label.drawing=off \
-           --subscribe aerospace.workspaces aerospace_workspace_change \
-                                           space_windows_change
+# AeroSpaceワークスペース表示
+source "$CONFIG_DIR/items/spaces.sh"
 
 ##### Adding Left Items #####
 # We add some regular items to the left side of the bar, where
