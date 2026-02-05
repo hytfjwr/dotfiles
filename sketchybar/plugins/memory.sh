@@ -15,4 +15,4 @@ fi
 sketchybar --set "$NAME" label="${MEMORY_PERCENT}%" label.color="$COLOR"
 
 # メモリグラフにデータをプッシュ
-sketchybar --push memory_graph "$MEMORY_PERCENT"
+sketchybar --push "$NAME" $(awk "BEGIN {printf \"%.2f\", $MEMORY_PERCENT/100}")
