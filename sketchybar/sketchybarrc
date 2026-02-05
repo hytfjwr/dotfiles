@@ -108,55 +108,48 @@ sketchybar --add item vpn right \
                  icon.highlight_color=0xff10528c \
                  y_offset=-5 \
            --add graph memory_graph right 50 \
-           --set memory_graph width=50 \
-                 graph.height=26 \
+           --set memory_graph width=28 \
+                 graph.height=12 \
                  graph.color=0xff00ff00 \
                  graph.fill_color=0x2000ff00 \
-                 background.height=26 \
-                 background.corner_radius=5 \
+                 background.height=16 \
+                 background.corner_radius=8 \
                  background.padding_left=3 \
                  background.padding_right=3 \
                  background.border_width=0 \
                  padding_left=0 \
                  padding_right=0 \
-                 y_offset=0 \
+                 y_offset=9 \
                  icon.drawing=off \
-                 label.font="SF Pro:Bold:10.0" \
-                 label.color=0xccffffff \
-                 label.padding_right=5 \
+                 label.drawing=off \
                  update_freq=2 \
                  script="$PLUGIN_DIR/memory.sh" \
                  click_script="open -a 'Activity Monitor'" \
-           --add item memory right \
-           --set memory icon=󰍛 \
+           --add item graph_spacer right \
+           --set graph_spacer width=20 \
+                 icon.drawing=off \
                  label.drawing=off \
+                 background.drawing=off \
                  padding_left=0 \
                  padding_right=0 \
            --add graph cpu_graph right 50 \
-           --set cpu_graph width=50 \
-                 graph.height=26 \
+           --set cpu_graph width=28 \
+                 graph.height=12 \
                  graph.color=0xff0099ff \
                  graph.fill_color=0x200099ff \
-                 background.height=26 \
-                 background.corner_radius=5 \
+                 background.height=16 \
+                 background.corner_radius=8 \
                  background.padding_left=3 \
                  background.padding_right=3 \
                  background.border_width=0 \
                  padding_left=0 \
                  padding_right=0 \
-                 y_offset=0 \
+                 y_offset=9 \
                  icon.drawing=off \
-                 label.font="SF Pro:Bold:10.0" \
-                 label.color=0xccffffff \
-                 label.padding_right=5 \
+                 label.drawing=off \
                  update_freq=2 \
                  script="$PLUGIN_DIR/cpu.sh" \
-                 click_script="open -a 'Activity Monitor'" \
-           --add item cpu right \
-           --set cpu icon=󰻠 \
-                 label.drawing=off \
-                 padding_left=0 \
-                 padding_right=0
+                 click_script="open -a 'Activity Monitor'"
 
 ##### Spotify Integration #####
 source "$CONFIG_DIR/items/spotify.sh"
