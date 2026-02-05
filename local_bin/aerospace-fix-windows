@@ -1,0 +1,93 @@
+#!/bin/bash
+# aerospace-fix-windows - ウィンドウを正しいワークスペースに移動する
+#
+# aerospace の on-window-detected は新規ウィンドウ作成時のみ発火するため、
+# 隠したアプリの再表示や AeroSpace 再起動時にウィンドウが誤った位置に残る。
+# このスクリプトは全ウィンドウを走査し、正しいワークスペースに移動する。
+#
+# NOTE: アプリ→ワークスペースのマッピングは aerospace.toml の
+#       on-window-detected と同期が必要。変更時は両方を更新すること。
+
+set -euo pipefail
+
+DRY_RUN=false
+QUIET=false
+
+for arg in "$@"; do
+    case "$arg" in
+        --dry-run) DRY_RUN=true ;;
+        --quiet)   QUIET=true ;;
+        --help|-h)
+            echo "Usage: aerospace-fix-windows [--dry-run] [--quiet]"
+            echo ""
+            echo "Options:"
+            echo "  --dry-run  移動せずに対象を表示"
+            echo "  --quiet    移動がない場合は何も出力しない"
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $arg" >&2
+            exit 1
+            ;;
+    esac
+done
+
+# アプリ Bundle ID → ワークスペース のマッピング
+# aerospace.toml の on-window-detected と同じ内容を維持すること
+get_target_workspace() {
+    local app_id="$1"
+    case "$app_id" in
+        # Terminal Applications -> Workspace 1
+        com.github.wez.wezterm)    echo "1" ;;
+        com.apple.Terminal)        echo "1" ;;
+        com.neovide.neovide)       echo "1" ;;
+        # Development Tools -> Workspace 2
+        com.todesktop.230313mzl4w4u92) echo "2" ;;  # Cursor
+        com.jetbrains.PhpStorm)    echo "2" ;;
+        com.microsoft.VSCode)      echo "2" ;;
+        # Web Browsers -> Workspace 3
+        company.thebrowser.Browser) echo "3" ;;  # Arc
+        com.google.Chrome)         echo "3" ;;
+        # Database Tools -> Workspace 4
+        com.sequel-ace.sequel-ace) echo "4" ;;  # Sequel Ace
+        com.tinyapp.TablePlus)     echo "4" ;;  # TablePlus
+        # Bruno -> Workspace 9
+        com.usebruno.app)          echo "9" ;;
+        # Slack -> Workspace S
+        com.tinyspeck.slackmacgap) echo "S" ;;
+        # Spotify -> Workspace M
+        com.spotify.client)        echo "M" ;;
+        # マッピングなし
+        *) echo "" ;;
+    esac
+}
+
+moved=0
+
+while IFS='|' read -r window_id app_id current_ws; do
+    target_ws="$(get_target_workspace "$app_id")"
+
+    # マッピングがないアプリはスキップ
+    if [ -z "$target_ws" ]; then
+        continue
+    fi
+
+    # すでに正しいワークスペースにいる場合はスキップ
+    if [ "$current_ws" = "$target_ws" ]; then
+        continue
+    fi
+
+    if [ "$DRY_RUN" = true ]; then
+        echo "[dry-run] $app_id: $current_ws -> $target_ws (window $window_id)"
+    else
+        aerospace move-node-to-workspace "$target_ws" --window-id "$window_id"
+        if [ "$QUIET" = false ]; then
+            echo "$app_id: $current_ws -> $target_ws (window $window_id)"
+        fi
+    fi
+    moved=$((moved + 1))
+done < <(aerospace list-windows --all --format '%{window-id}|%{app-bundle-id}|%{workspace}')
+
+if [ "$QUIET" = false ] && [ "$moved" -eq 0 ]; then
+    echo "All windows are in the correct workspace."
+fi
