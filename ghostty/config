@@ -1,0 +1,40 @@
+# フォント設定
+font-family = 0xProto
+font-family-bold = 0xProto
+font-family-italic = 0xProto
+font-family-bold-italic = 0xProto
+font-codepoint-map = U+3000-U+303F,U+3040-U+309F,U+30A0-U+30FF,U+4E00-U+9FFF,U+F900-U+FAFF,U+FF00-U+FFEF=Hiragino Sans
+font-size = 16
+font-feature = -calt
+font-feature = -clig
+font-feature = -liga
+
+# カラーテーマ
+theme = ayu
+
+# ウィンドウ設定
+background-opacity = 0.55
+background-blur = 20
+macos-titlebar-style = tabs
+window-padding-x = 10
+window-padding-y = 10
+
+# タブバー
+window-show-tab-bar = auto
+
+# スクロールバック（バイト単位、約10MB ≈ 10000行相当）
+scrollback-limit = 10000000
+
+# マウス
+right-click-action = paste
+
+# キーバインド（タブ操作）
+keybind = super+shift+left=previous_tab
+keybind = super+shift+right=next_tab
+
+# キーバインド（フォントサイズ）
+# Cmd+T, Cmd+W, Cmd+=, Cmd+-, Cmd+0, Cmd+Enter(fullscreen)はデフォルトで対応済み
+
+# クリップボード
+clipboard-read = allow
+clipboard-write = allow

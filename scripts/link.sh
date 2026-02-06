@@ -28,6 +28,9 @@ ln -sfn "$DOTFILES_DIR/karabiner" "$HOME/.config/karabiner"
 info "Linking wezterm"
 ln -sfn "$DOTFILES_DIR/wezterm" "$HOME/.config/wezterm"
 
+info "Linking ghostty"
+ln -sfn "$DOTFILES_DIR/ghostty" "$HOME/.config/ghostty"
+
 info "Linking sketchybar"
 ln -sfn "$DOTFILES_DIR/sketchybar" "$HOME/.config/sketchybar"
 
