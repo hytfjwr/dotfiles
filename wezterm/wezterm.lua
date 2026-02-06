@@ -137,6 +137,9 @@ config.tab_bar_at_bottom = false
 -- スクロール設定
 config.scrollback_lines = 10000
 
+-- フレームレート設定
+config.max_fps = 250
+
 -- 非アクティブペインの輝度を下げる（テキストと背景両方に適用）
 config.inactive_pane_hsb = {
 	hue = 1.0,
