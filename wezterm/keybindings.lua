@@ -3,6 +3,10 @@ local wezterm = require("wezterm")
 
 local M = {}
 
+-- フォントサイズ制限
+local FONT_SIZE_MIN = 4
+local FONT_SIZE_MAX = 128
+
 M.keys = {
 	-- ペイン分割
 	{
@@ -58,21 +62,33 @@ M.keys = {
 		mods = "CMD|SHIFT",
 		action = wezterm.action.ActivateTabRelative(1),
 	},
-	-- フォントサイズ拡大・縮小
+	-- フォントサイズ拡大・縮小（範囲制限付き）
 	{
 		key = "+",
 		mods = "CMD",
-		action = wezterm.action.IncreaseFontSize,
+		action = wezterm.action_callback(function(window, pane)
+			if window:effective_config().font_size < FONT_SIZE_MAX then
+				window:perform_action(wezterm.action.IncreaseFontSize, pane)
+			end
+		end),
 	},
 	{
 		key = "=",
 		mods = "CMD",
-		action = wezterm.action.IncreaseFontSize,
+		action = wezterm.action_callback(function(window, pane)
+			if window:effective_config().font_size < FONT_SIZE_MAX then
+				window:perform_action(wezterm.action.IncreaseFontSize, pane)
+			end
+		end),
 	},
 	{
 		key = "-",
 		mods = "CMD",
-		action = wezterm.action.DecreaseFontSize,
+		action = wezterm.action_callback(function(window, pane)
+			if window:effective_config().font_size > FONT_SIZE_MIN then
+				window:perform_action(wezterm.action.DecreaseFontSize, pane)
+			end
+		end),
 	},
 	{
 		key = "0",
