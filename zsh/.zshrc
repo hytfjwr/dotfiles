@@ -63,5 +63,8 @@ alias cdi="zi"
 # lazygit
 alias lg="lazygit"
 
+# claude-worktree
+alias cw="claude-worktree"
+
 # bat - cat with syntax highlighting
 alias cat="bat"
