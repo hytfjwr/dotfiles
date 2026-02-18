@@ -22,6 +22,8 @@ wezterm.on("update-status", function(window, pane)
 			if f then
 				f:write(pane_id)
 				f:close()
+			else
+				wezterm.log_error("Failed to write /tmp/wezterm_last_active_pane")
 			end
 		end
 	end
