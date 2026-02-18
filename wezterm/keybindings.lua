@@ -101,6 +101,22 @@ M.keys = {
 		mods = "CMD",
 		action = wezterm.action.ToggleFullScreen,
 	},
+	-- nvimペインにフォーカス
+	{
+		key = ";",
+		mods = "CMD",
+		action = wezterm.action_callback(function(window, _pane)
+			local tab = window:active_tab()
+			for _, pane_info in ipairs(tab:panes_with_info()) do
+				local process = pane_info.pane:get_foreground_process_name() or ""
+				local basename = process:match("([^/]+)$") or ""
+				if basename == "nvim" then
+					pane_info.pane:activate()
+					return
+				end
+			end
+		end),
+	},
 	-- タブ名変更
 	{
 		key = "o",
