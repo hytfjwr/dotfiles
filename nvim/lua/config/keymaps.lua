@@ -68,7 +68,9 @@ vim.keymap.set("v", "<leader>cl", function()
     local pane_id = f:read("*all"):gsub("%s+", "")
     f:close()
     if pane_id ~= "" then
-      local result = vim.fn.system("wezterm cli send-text --pane-id " .. pane_id .. " " .. vim.fn.shellescape(" " .. reference .. " "))
+      vim.fn.system(
+        "wezterm cli send-text --pane-id " .. pane_id .. " " .. vim.fn.shellescape(" " .. reference .. " ")
+      )
       if vim.v.shell_error ~= 0 then
         vim.notify("Failed to send (pane may be closed): " .. reference, vim.log.levels.WARN)
       else
@@ -80,4 +82,4 @@ vim.keymap.set("v", "<leader>cl", function()
   else
     vim.notify("Copied (no active pane): " .. reference, vim.log.levels.WARN)
   end
-end, { desc = "Send line reference to Claude Code pane" })
+end, { desc = "Send line reference to last active pane" })
