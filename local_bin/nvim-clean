@@ -1,0 +1,82 @@
+#!/bin/bash
+# nvim-clean - Neovim のキャッシュ・データを削除する
+#
+# tree-sitter パーサーのコード署名無効化や LSP の不整合など、
+# Neovim の動作がおかしい場合にキャッシュを一掃して再構築するためのスクリプト。
+# 次回 nvim 起動時にプラグイン・LSP・パーサーが自動で再インストールされる。
+
+set -euo pipefail
+
+DRY_RUN=false
+ALL=false
+
+TARGETS=(
+    "$HOME/.cache/nvim"
+    "$HOME/.local/state/nvim"
+    "$HOME/.local/share/nvim/site/parser"
+)
+
+ALL_TARGETS=(
+    "$HOME/.cache/nvim"
+    "$HOME/.local/state/nvim"
+    "$HOME/.local/share/nvim"
+)
+
+for arg in "$@"; do
+    case "$arg" in
+        --dry-run) DRY_RUN=true ;;
+        --all)     ALL=true ;;
+        --help|-h)
+            echo "Usage: nvim-clean [--dry-run] [--all]"
+            echo ""
+            echo "Options:"
+            echo "  --dry-run  削除せずに対象を表示"
+            echo "  --all      プラグイン・LSP も含めてすべて削除"
+            echo ""
+            echo "Default (no --all):"
+            echo "  ~/.cache/nvim              キャッシュ"
+            echo "  ~/.local/state/nvim         ログ・state"
+            echo "  ~/.local/share/nvim/site/parser  tree-sitter パーサー"
+            echo ""
+            echo "With --all:"
+            echo "  ~/.cache/nvim              キャッシュ"
+            echo "  ~/.local/state/nvim         ログ・state"
+            echo "  ~/.local/share/nvim         lazy プラグイン・mason LSP・パーサーなどすべて"
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $arg" >&2
+            exit 1
+            ;;
+    esac
+done
+
+if [ "$ALL" = true ]; then
+    selected=("${ALL_TARGETS[@]}")
+else
+    selected=("${TARGETS[@]}")
+fi
+
+deleted=0
+
+for dir in "${selected[@]}"; do
+    if [ ! -e "$dir" ]; then
+        continue
+    fi
+
+    size="$(du -sh "$dir" 2>/dev/null | cut -f1 | xargs)"
+
+    if [ "$DRY_RUN" = true ]; then
+        echo "[dry-run] $dir ($size)"
+    else
+        rm -rf "$dir"
+        echo "Deleted $dir ($size)"
+    fi
+    deleted=$((deleted + 1))
+done
+
+if [ "$deleted" -eq 0 ]; then
+    echo "Nothing to clean."
+elif [ "$DRY_RUN" = false ]; then
+    echo "Done. Next nvim launch will rebuild automatically."
+fi
