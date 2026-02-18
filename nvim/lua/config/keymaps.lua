@@ -61,19 +61,23 @@ vim.keymap.set("v", "<leader>cl", function()
   -- クリップボードにコピー
   vim.fn.setreg("+", reference)
 
-  -- Claude Codeペインに送信
-  local pane_id_file = "/tmp/claude_pane_id"
+  -- 最後にアクティブだった非nvimペインに送信
+  local pane_id_file = "/tmp/wezterm_last_active_pane"
   local f = io.open(pane_id_file, "r")
   if f then
     local pane_id = f:read("*all"):gsub("%s+", "")
     f:close()
     if pane_id ~= "" then
-      vim.fn.system("wezterm cli send-text --pane-id " .. pane_id .. " " .. vim.fn.shellescape(" " .. reference .. " "))
-      vim.notify("Sent to Claude: " .. reference, vim.log.levels.INFO)
+      local result = vim.fn.system("wezterm cli send-text --pane-id " .. pane_id .. " " .. vim.fn.shellescape(" " .. reference .. " "))
+      if vim.v.shell_error ~= 0 then
+        vim.notify("Failed to send (pane may be closed): " .. reference, vim.log.levels.WARN)
+      else
+        vim.notify("Sent to pane " .. pane_id .. ": " .. reference, vim.log.levels.INFO)
+      end
     else
-      vim.notify("Copied (no Claude pane): " .. reference, vim.log.levels.WARN)
+      vim.notify("Copied (no active pane): " .. reference, vim.log.levels.WARN)
     end
   else
-    vim.notify("Copied (no Claude pane): " .. reference, vim.log.levels.WARN)
+    vim.notify("Copied (no active pane): " .. reference, vim.log.levels.WARN)
   end
 end, { desc = "Send line reference to Claude Code pane" })

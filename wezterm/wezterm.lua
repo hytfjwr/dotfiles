@@ -9,6 +9,24 @@ local resurrect = wezterm.plugin.require("https://github.com/MLFlexer/resurrect.
 -- tabline.wez プラグイン
 local tabline = wezterm.plugin.require("https://github.com/michaelbrusegard/tabline.wez")
 
+-- 最後にアクティブだった非nvimペインを追跡
+local last_written_pane_id = nil
+wezterm.on("update-status", function(window, pane)
+	local process = pane:get_foreground_process_name() or ""
+	local basename = process:match("([^/]+)$") or ""
+	if basename ~= "nvim" then
+		local pane_id = tostring(pane:pane_id())
+		if pane_id ~= last_written_pane_id then
+			last_written_pane_id = pane_id
+			local f = io.open("/tmp/wezterm_last_active_pane", "w")
+			if f then
+				f:write(pane_id)
+				f:close()
+			end
+		end
+	end
+end)
+
 -- 起動時にworkspace状態を復元
 wezterm.on("gui-startup", resurrect.state_manager.resurrect_on_gui_startup)
 
