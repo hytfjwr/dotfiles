@@ -1,3 +1,0 @@
-#!/bin/bash
-# Claude Code起動コマンド
-exec claude "$@"
