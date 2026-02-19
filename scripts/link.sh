@@ -46,7 +46,6 @@ mkdir -p "$HOME/.local/bin"
 info "Linking local_bin scripts"
 ln -sfn "$DOTFILES_DIR/local_bin/env" "$HOME/.local/bin/env"
 ln -sfn "$DOTFILES_DIR/local_bin/env.fish" "$HOME/.local/bin/env.fish"
-ln -sfn "$DOTFILES_DIR/local_bin/ccm" "$HOME/.local/bin/ccm"
 ln -sfn "$DOTFILES_DIR/local_bin/aerospace-fix-windows" "$HOME/.local/bin/aerospace-fix-windows"
 ln -sfn "$DOTFILES_DIR/local_bin/nvim-clean" "$HOME/.local/bin/nvim-clean"
 
