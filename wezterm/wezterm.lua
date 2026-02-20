@@ -50,7 +50,7 @@ end)
 -- フォント設定
 config.font = wezterm.font_with_fallback({ "0xProto", "Hiragino Sans" })
 config.harfbuzz_features = { "calt=0", "clig=0", "liga=0" }
-config.text_background_opacity = 0.8
+config.text_background_opacity = 1.0
 config.font_size = 16
 config.cell_width = 1.0
 config.line_height = 1.0
@@ -77,7 +77,7 @@ config.check_for_updates = true
 config.check_for_updates_interval_seconds = 86400
 
 -- ウィンドウ設定
-config.window_background_opacity = 0.55
+config.window_background_opacity = 0.9
 config.macos_window_background_blur = 20
 config.window_decorations = "RESIZE"
 config.window_padding = {
@@ -89,16 +89,16 @@ config.window_padding = {
 config.window_background_gradient = {
 	orientation = { Linear = { angle = -50.0 } },
 	colors = {
-		"#0f0c29",
-		"#282a36",
-		"#343746",
-		"#3a3f52",
-		"#343746",
-		"#282a36",
+		"#080618",
+		"#0e0c1e",
+		"#151321",
+		"#1a1828",
+		"#151321",
+		"#0e0c1e",
 	},
 	interpolation = "Linear",
 	blend = "Rgb",
-	noise = 64,
+	noise = 8,
 	segment_size = 11,
 	segment_smoothness = 1.0,
 }
@@ -115,12 +115,14 @@ config.hyperlink_rules = {
 -- スクロール設定
 config.scrollback_lines = 10000
 
--- フレームレート設定
+-- レンダリング設定
+config.front_end = "WebGpu"
+config.webgpu_power_preference = "HighPerformance"
 config.max_fps = 250
 
 -- 非アクティブペインの輝度を下げる（テキストと背景両方に適用）
-config.inactive_pane_hsb = {
-	hue = 1.0,
+-- config.inactive_pane_hsb = {
+	hzue = 1.0,
 	saturation = 0.7,
 	brightness = 0.45,
 }
