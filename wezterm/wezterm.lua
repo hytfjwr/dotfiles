@@ -122,10 +122,10 @@ config.max_fps = 250
 
 -- 非アクティブペインの輝度を下げる（テキストと背景両方に適用）
 -- config.inactive_pane_hsb = {
-	hzue = 1.0,
-	saturation = 0.7,
-	brightness = 0.45,
-}
+-- 	hue = 1.0,
+-- 	saturation = 0.7,
+-- 	brightness = 0.45,
+-- }
 
 -- キーバインド
 config.keys = keybindings.keys
