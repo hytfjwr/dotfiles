@@ -89,12 +89,12 @@ config.window_padding = {
 config.window_background_gradient = {
 	orientation = { Linear = { angle = -50.0 } },
 	colors = {
-		"#080618",
-		"#0e0c1e",
-		"#151321",
-		"#1a1828",
-		"#151321",
-		"#0e0c1e",
+		"#0a0a0a",
+		"#141414",
+		"#1c1c1c",
+		"#222222",
+		"#1c1c1c",
+		"#141414",
 	},
 	interpolation = "Linear",
 	blend = "Rgb",
