@@ -65,6 +65,9 @@ config.use_ime = true
 
 -- カラースキーム
 config.color_scheme = "ayu"
+config.colors = {
+	background = "#0a0a0a",
+}
 
 -- 設定を自動リロードする
 config.automatically_reload_config = true
@@ -77,7 +80,7 @@ config.check_for_updates = true
 config.check_for_updates_interval_seconds = 86400
 
 -- ウィンドウ設定
-config.window_background_opacity = 0.9
+config.window_background_opacity = 0.6
 config.macos_window_background_blur = 20
 config.window_decorations = "RESIZE"
 config.window_padding = {
