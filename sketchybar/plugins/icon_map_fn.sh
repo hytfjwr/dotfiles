@@ -12,6 +12,7 @@ __icon_map() {
         "Cursor") echo ":cursor:" ;;
         "PhpStorm") echo ":php_storm:" ;;
         "WezTerm" | "wezterm-gui") echo ":wezterm:" ;;
+        "Ghostty") echo ":ghostty:" ;;
         "Neovide" | "neovide") echo ":neovide:" ;;
         "Slack") echo ":slack:" ;;
         "Spotify") echo ":spotify:" ;;
