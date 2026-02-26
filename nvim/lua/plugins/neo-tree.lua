@@ -10,6 +10,9 @@ return {
     lazy = false,
     opts = {
       filesystem = {
+        filtered_items = {
+          visible = true,
+        },
         follow_curent_file = {
           enebled = true,
           leave_dirs_open = true,
