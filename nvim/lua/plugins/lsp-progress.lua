@@ -24,6 +24,18 @@ return {
         end
         return ""
       end)
+      -- Insert モード時にステータスバーを緑色に強調
+      opts.sections.lualine_a = {
+        {
+          "mode",
+          color = function()
+            local mode = vim.fn.mode()
+            if mode == "i" or mode == "ic" then
+              return { bg = "#73d997", fg = "#0d1017", gui = "bold" }
+            end
+          end,
+        },
+      }
     end,
   },
 }

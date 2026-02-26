@@ -18,3 +18,6 @@ vim.api.nvim_create_autocmd("TermOpen", {
     vim.cmd("startinsert")
   end,
 })
+
+-- Insert モード: カーソルを縦線＋緑色（iCursor ハイライトグループを使用）
+vim.opt.guicursor = "n-v-c:block,i-ci-ve:ver25-iCursor,r-cr:hor20,o:hor50"
