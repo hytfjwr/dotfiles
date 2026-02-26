@@ -7,6 +7,48 @@ local M = {}
 local FONT_SIZE_MIN = 4
 local FONT_SIZE_MAX = 128
 
+-- プロジェクト一覧を取得（zoxide使用頻度順、フォールバック: ~/Dev/スキャン）
+local function get_projects()
+	local projects = {}
+	local home = os.getenv("HOME") or "/Users/hayato.fujiwara"
+	local dev_prefix = home .. "/Dev/"
+
+	-- zoxide DBから取得（使用頻度順）
+	local success, stdout = wezterm.run_child_process({
+		"/opt/homebrew/bin/zoxide",
+		"query",
+		"--list",
+		"--score",
+	})
+
+	if success and stdout ~= "" then
+		local dev_lower = dev_prefix:lower()
+		for line in stdout:gmatch("[^\n]+") do
+			local score, path = line:match("^%s*([%d.]+)%s+(.+)$")
+			if path and path:lower():sub(1, #dev_lower) == dev_lower and path ~= dev_prefix:sub(1, -2) then
+				local name = path:match("([^/]+)$")
+				table.insert(projects, {
+					id = path,
+					label = name .. " (" .. score .. ")",
+				})
+			end
+		end
+	else
+		-- フォールバック: ~/Dev/ 直下をスキャン
+		local ls_success, ls_stdout = wezterm.run_child_process({ "ls", "-1", dev_prefix })
+		if ls_success then
+			for name in ls_stdout:gmatch("[^\n]+") do
+				table.insert(projects, {
+					id = dev_prefix .. name,
+					label = name,
+				})
+			end
+		end
+	end
+
+	return projects
+end
+
 M.keys = {
 	-- ペイン分割
 	{
@@ -129,6 +171,93 @@ M.keys = {
 				end
 			end),
 		}),
+	},
+	-- プロジェクトワークスペーススイッチャー
+	{
+		key = "p",
+		mods = "CMD|SHIFT",
+		action = wezterm.action_callback(function(window, pane)
+			local projects = get_projects()
+
+			if #projects == 0 then
+				window:toast_notification("WezTerm", "No projects found in ~/Dev/")
+				return
+			end
+
+			window:perform_action(
+				wezterm.action.InputSelector({
+					title = "Switch Project Workspace",
+					choices = projects,
+					fuzzy = true,
+					action = wezterm.action_callback(function(inner_window, inner_pane, id, label)
+						if not id then
+							return
+						end
+
+						local project_name = id:match("([^/]+)$")
+
+						-- 既存ワークスペースがあればそちらに切り替え
+						for _, ws in ipairs(wezterm.mux.get_workspace_names()) do
+							if ws == project_name then
+								inner_window:perform_action(
+									wezterm.action.SwitchToWorkspace({ name = project_name }),
+									inner_pane
+								)
+								return
+							end
+						end
+
+						-- 新規ワークスペース作成
+						inner_window:perform_action(
+							wezterm.action.SwitchToWorkspace({
+								name = project_name,
+								spawn = { cwd = id },
+							}),
+							inner_pane
+						)
+					end),
+				}),
+				pane
+			)
+		end),
+	},
+	-- 前のワークスペースに切り替え
+	{
+		key = "[",
+		mods = "CMD|SHIFT",
+		action = wezterm.action_callback(function(window, pane)
+			local workspaces = wezterm.mux.get_workspace_names()
+			if #workspaces <= 1 then
+				return
+			end
+			local current = wezterm.mux.get_active_workspace()
+			for i, ws in ipairs(workspaces) do
+				if ws == current then
+					local prev = workspaces[(i - 2) % #workspaces + 1]
+					window:perform_action(wezterm.action.SwitchToWorkspace({ name = prev }), pane)
+					return
+				end
+			end
+		end),
+	},
+	-- 次のワークスペースに切り替え
+	{
+		key = "]",
+		mods = "CMD|SHIFT",
+		action = wezterm.action_callback(function(window, pane)
+			local workspaces = wezterm.mux.get_workspace_names()
+			if #workspaces <= 1 then
+				return
+			end
+			local current = wezterm.mux.get_active_workspace()
+			for i, ws in ipairs(workspaces) do
+				if ws == current then
+					local next_ws = workspaces[i % #workspaces + 1]
+					window:perform_action(wezterm.action.SwitchToWorkspace({ name = next_ws }), pane)
+					return
+				end
+			end
+		end),
 	},
 }
 
