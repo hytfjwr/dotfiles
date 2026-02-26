@@ -10,7 +10,7 @@ local FONT_SIZE_MAX = 128
 -- プロジェクト一覧を取得（zoxide使用頻度順、フォールバック: ~/Dev/スキャン）
 local function get_projects()
 	local projects = {}
-	local home = os.getenv("HOME") or "/Users/hayato.fujiwara"
+	local home = os.getenv("HOME")
 	local dev_prefix = home .. "/Dev/"
 
 	-- zoxide DBから取得（使用頻度順）
