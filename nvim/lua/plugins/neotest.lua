@@ -13,6 +13,94 @@ return {
       local neotest = require("neotest")
 
       neotest.setup({
+        consumers = {
+          notify = function(client)
+            local neotest_notif_id = "neotest_progress"
+            local total_tests = 0
+
+            client.listeners.run = function(adapter_id, root_id, position_ids)
+              total_tests = 0
+              for _, id in ipairs(position_ids) do
+                local pos = client:get_position(id)
+                if pos and pos:data().type == "test" then
+                  total_tests = total_tests + 1
+                end
+              end
+              if total_tests > 0 then
+                vim.notify("Running " .. total_tests .. " tests...", vim.log.levels.INFO, {
+                  title = "Neotest",
+                  id = neotest_notif_id,
+                  timeout = false,
+                })
+              end
+            end
+
+            client.listeners.results = function(adapter_id, results, partial)
+              local passed, failed, skipped = 0, 0, 0
+              local passed_names, failed_names = {}, {}
+              for id, result in pairs(results) do
+                local position = client:get_position(id)
+                if position and position:data().type == "test" then
+                  local name = position:data().name
+                  if result.status == "passed" then
+                    passed = passed + 1
+                    table.insert(passed_names, name)
+                  elseif result.status == "failed" then
+                    failed = failed + 1
+                    table.insert(failed_names, name)
+                  elseif result.status == "skipped" then
+                    skipped = skipped + 1
+                  end
+                end
+              end
+
+              local done = passed + failed + skipped
+              local parts = {}
+              if passed > 0 then
+                table.insert(parts, passed .. " passed")
+              end
+              if failed > 0 then
+                table.insert(parts, failed .. " failed")
+              end
+              if skipped > 0 then
+                table.insert(parts, skipped .. " skipped")
+              end
+
+              if partial then
+                local msg = done .. "/" .. total_tests .. " (" .. table.concat(parts, ", ") .. ")"
+                local level = failed > 0 and vim.log.levels.WARN or vim.log.levels.INFO
+                vim.notify(msg, level, { title = "Neotest", id = neotest_notif_id, timeout = false })
+                return
+              end
+
+              local msg = table.concat(parts, ", ")
+              if #passed_names > 0 then
+                table.sort(passed_names)
+                msg = msg .. "\n\nPassed:\n- " .. table.concat(passed_names, "\n- ")
+              end
+              if #failed_names > 0 then
+                table.sort(failed_names)
+                msg = msg .. "\n\nFailed:\n- " .. table.concat(failed_names, "\n- ")
+              end
+
+              local level = failed > 0 and vim.log.levels.WARN or vim.log.levels.INFO
+              vim.notify(msg, level, { title = "Neotest", id = neotest_notif_id })
+            end
+            -- Discover positions for buffers already open before neotest initialized
+            require("nio").run(function()
+              for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+                if vim.api.nvim_buf_is_loaded(buf) then
+                  local file = vim.api.nvim_buf_get_name(buf)
+                  if file and #file > 0 then
+                    pcall(client.get_position, client, file)
+                  end
+                end
+              end
+            end)
+
+            return {}
+          end,
+        },
         adapters = {
           require("neotest-phpunit")({
             phpunit_cmd = function()
