@@ -12,6 +12,22 @@ return {
     config = function()
       local neotest = require("neotest")
 
+      local test_results_file = "/tmp/nvim_test_results.json"
+
+      local function write_test_status(status, passed, failed)
+        local data = vim.json.encode({
+          status = status,
+          passed = passed or 0,
+          failed = failed or 0,
+          timestamp = os.time(),
+        })
+        local f = io.open(test_results_file, "w")
+        if f then
+          f:write(data)
+          f:close()
+        end
+      end
+
       neotest.setup({
         consumers = {
           notify = function(client)
@@ -27,6 +43,7 @@ return {
                 end
               end
               if total_tests > 0 then
+                write_test_status("RUNNING", 0, 0)
                 vim.notify("Running " .. total_tests .. " tests...", vim.log.levels.INFO, {
                   title = "Neotest",
                   id = neotest_notif_id,
@@ -52,6 +69,10 @@ return {
                     skipped = skipped + 1
                   end
                 end
+              end
+
+              if not partial then
+                write_test_status(failed > 0 and "FAIL" or "PASS", passed, failed)
               end
 
               local done = passed + failed + skipped
