@@ -92,10 +92,9 @@ sketchybar --add item time right \
 source "$CONFIG_DIR/items/focus_timer.sh"
 
 # システムモニター（左から右の順：VPN、ネットワーク、メモリアイコン+グラフ、CPUアイコン+グラフ）
-sketchybar --add item vpn right \
-           --set vpn update_freq=5 icon=󰖂 script="$PLUGIN_DIR/vpn.sh" \
-                 width=45 \
-           --add item network_up right \
+source "$CONFIG_DIR/items/vpn.sh"
+
+sketchybar --add item network_up right \
            --set network_up label.font="SF Pro:Heavy:9" \
                  icon.font="SF Pro:Heavy:9" \
                  icon=▲ \
