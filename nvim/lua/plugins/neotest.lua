@@ -15,17 +15,20 @@ return {
       neotest.setup({
         adapters = {
           require("neotest-phpunit")({
-            -- TODO FIX THIS
             phpunit_cmd = function()
-              return { "docker", "compose", "exec", "-T", "-w", "/work", "app", "vendor/bin/phpunit" }
+              local cwd = vim.fn.getcwd()
+              local config_path = cwd .. "/.neotest-phpunit.lua"
+              if vim.fn.filereadable(config_path) == 1 then
+                local docker_config = dofile(config_path)
+                local script = vim.fn.stdpath("config") .. "/scripts/phpunit-docker.sh"
+                local service = docker_config.service
+                local workdir = docker_config.docker_workdir or "/work"
+                return { script, service, workdir }
+              end
+              return "vendor/bin/phpunit"
             end,
             root_files = { "composer.json", "phpunit.xml", ".gitignore", "docker-compose.yml" },
             filter_dirs = { ".git", "node_modules", "vendor" },
-            phpunit_test_command = function(path)
-              local cwd = vim.fn.getcwd()
-              local relative_path = path:gsub("^" .. cwd .. "/", "")
-              return relative_path
-            end,
           }),
           require("neotest-vitest"),
         },
