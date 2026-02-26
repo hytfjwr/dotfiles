@@ -88,6 +88,9 @@ sketchybar --add item time right \
            --set battery update_freq=120 script="$PLUGIN_DIR/battery.sh" \
            --subscribe battery system_woke power_source_change
 
+##### Focus Timer #####
+source "$CONFIG_DIR/items/focus_timer.sh"
+
 # システムモニター（左から右の順：VPN、ネットワーク、メモリアイコン+グラフ、CPUアイコン+グラフ）
 sketchybar --add item vpn right \
            --set vpn update_freq=5 icon=󰖂 script="$PLUGIN_DIR/vpn.sh" \
