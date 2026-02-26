@@ -11,12 +11,15 @@ COLOR_DEFAULT=0xffffffff
 
 start_timer() {
   local mode="$1"
-  local duration=0
-  case "$mode" in
-    "Coding") duration=3000 ;; # 50 min
-    "Review") duration=1200 ;; # 20 min
-    "Break")  duration=600 ;;  # 10 min
-  esac
+  local duration="$2"
+
+  if [ -z "$duration" ]; then
+    case "$mode" in
+      "Coding") duration=3000 ;; # 50 min
+      "Review") duration=1200 ;; # 20 min
+      "Break")  duration=600 ;;  # 10 min
+    esac
+  fi
 
   local end_time=$(($(date +%s) + duration))
 
@@ -27,6 +30,56 @@ EOF
 
   sketchybar --set focus_timer.anchor popup.drawing=off
   update
+}
+
+parse_duration() {
+  local input="$1"
+  if [[ "$input" =~ ^([0-9]+):([0-5][0-9])$ ]]; then
+    # m:ss or mm:ss
+    echo $(( ${BASH_REMATCH[1]} * 60 + 10#${BASH_REMATCH[2]} ))
+  elif [[ "$input" =~ ^([0-9]+)[sS]$ ]]; then
+    # Ns — seconds
+    echo "${BASH_REMATCH[1]}"
+  elif [[ "$input" =~ ^([0-9]+)[mM]?$ ]]; then
+    # N or Nm — minutes
+    echo $(( ${BASH_REMATCH[1]} * 60 ))
+  else
+    return 1
+  fi
+}
+
+format_duration_label() {
+  local sec="$1"
+  if [ "$sec" -ge 60 ] && [ $((sec % 60)) -eq 0 ]; then
+    echo "$((sec / 60))m"
+  elif [ "$sec" -ge 60 ]; then
+    echo "$((sec / 60))m$((sec % 60))s"
+  else
+    echo "${sec}s"
+  fi
+}
+
+start_custom_timer() {
+  sketchybar --set focus_timer.anchor popup.drawing=off
+
+  local input
+  input=$(osascript -e 'display dialog "時間を入力（例: 25, 25m, 90s, 1:30）" default answer "25" buttons {"Cancel", "Start"} default button "Start" with title "Focus Timer"' -e 'text returned of result' 2>/dev/null)
+
+  if [ -z "$input" ]; then
+    return
+  fi
+
+  local duration
+  duration=$(parse_duration "$input")
+
+  if [ -z "$duration" ] || [ "$duration" -le 0 ] 2>/dev/null; then
+    osascript -e 'display notification "無効な入力です（例: 25, 25m, 90s, 1:30）" with title "Focus Timer"'
+    return
+  fi
+
+  local label
+  label=$(format_duration_label "$duration")
+  start_timer "Custom($label)" "$duration"
 }
 
 stop_timer() {
@@ -122,6 +175,7 @@ mouse_clicked() {
     "focus_timer.coding") start_timer "Coding" ;;
     "focus_timer.review") start_timer "Review" ;;
     "focus_timer.break")  start_timer "Break" ;;
+    "focus_timer.custom") start_custom_timer ;;
     "focus_timer.stop")   stop_timer ;;
     *) ;;
   esac

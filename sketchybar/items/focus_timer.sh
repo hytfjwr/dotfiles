@@ -57,6 +57,17 @@ focus_timer_break=(
   script="$PLUGIN_DIR/focus_timer.sh"
 )
 
+focus_timer_custom=(
+  icon=󰥔
+  icon.color=0xffbd93f9
+  icon.padding_left=8
+  label="Custom"
+  label.font="SF Pro:Semibold:13.0"
+  padding_left=4
+  padding_right=4
+  script="$PLUGIN_DIR/focus_timer.sh"
+)
+
 focus_timer_stop=(
   icon=󰓛
   icon.color=0xffff5555
@@ -86,6 +97,10 @@ sketchybar --add item focus_timer.anchor right                           \
            --add item focus_timer.break popup.focus_timer.anchor         \
            --set focus_timer.break "${focus_timer_break[@]}"             \
            --subscribe focus_timer.break mouse.clicked                   \
+                                                                         \
+           --add item focus_timer.custom popup.focus_timer.anchor        \
+           --set focus_timer.custom "${focus_timer_custom[@]}"           \
+           --subscribe focus_timer.custom mouse.clicked                  \
                                                                          \
            --add item focus_timer.stop popup.focus_timer.anchor          \
            --set focus_timer.stop "${focus_timer_stop[@]}"               \
