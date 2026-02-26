@@ -103,6 +103,12 @@ d8'   .8P 88     88     88    Y8.   .8P  88     88 88    .8P 88     88     88
             desc = "Dotfiles",
             action = ":lua Snacks.dashboard.pick('files', {cwd = '~/Dev/dotfiles'})",
           },
+          {
+            icon = " ",
+            key = "s",
+            desc = "Restore Session",
+            action = ":lua require('persistence').load()",
+          },
           { icon = "󰊳 ", key = "u", desc = "Update", action = ":Lazy update" },
           { icon = " ", key = "q", desc = "Quit", action = ":qa" },
         },
