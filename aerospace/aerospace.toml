@@ -80,7 +80,7 @@ M = 'built-in'
     inner.vertical =   0
     outer.left =       0
     outer.bottom =     0
-    outer.top =        40  # Sketchybarの高さ分確保
+    outer.top =        [{ monitor.built-in = 6 }, 40]  # Sketchybarの高さ分確保（内蔵ディスプレイはノッチ分を差し引く）
     outer.right =      0
 
 # 'main' binding mode declaration
