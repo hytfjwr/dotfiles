@@ -4,7 +4,7 @@ local M = {}
 
 local CCUSAGE = os.getenv("HOME") .. "/.local/share/mise/shims/ccusage"
 local CACHE_FILE = "/tmp/wezterm_ccusage_cache"
-local CACHE_TTL = 900 -- 15 minutes
+local CACHE_TTL = 300 -- 5 minutes
 
 -- Track when we last triggered a fetch
 local last_triggered = 0
