@@ -1,5 +1,5 @@
 -- Claude Code usage display for WezTerm tabline
--- Uses ccusage CLI to show daily cost, block remaining time, and session usage
+-- Cost from ccusage CLI, utilization/reset from Anthropic OAuth API
 local M = {}
 
 local CCUSAGE = os.getenv("HOME") .. "/.local/share/mise/shims/ccusage"
@@ -29,19 +29,22 @@ local function trigger_fetch()
 	last_triggered = now
 
 	local today = os.date("%Y%m%d")
-	-- Run in background: write to temp file then atomic rename to avoid partial reads
 	local tmp = CACHE_FILE .. ".tmp"
-	os.execute(
-		string.format(
-			"(%s daily --json --since %s --offline 2>/dev/null; echo __SEP__; %s blocks --active --json --offline --token-limit max 2>/dev/null) > %s 2>/dev/null && mv %s %s &",
-			CCUSAGE,
-			today,
-			CCUSAGE,
-			tmp,
-			tmp,
-			CACHE_FILE
-		)
+	-- Cost from ccusage, utilization/reset from Anthropic OAuth API
+	local script = string.format(
+		[=[(%s daily --json --since %s --offline 2>/dev/null
+echo __SEP__
+TOKEN=$(security find-generic-password -s "Claude Code-credentials" -w 2>/dev/null | python3 -c "import sys,json;print(json.load(sys.stdin).get('claudeAiOauth',{}).get('accessToken',''))" 2>/dev/null)
+if [ -n "$TOKEN" ]; then
+  curl -s -H "Authorization: Bearer $TOKEN" -H "anthropic-beta: oauth-2025-04-20" "https://api.anthropic.com/api/oauth/usage" 2>/dev/null
+fi) > %s 2>/dev/null && mv %s %s &]=],
+		CCUSAGE,
+		today,
+		tmp,
+		tmp,
+		CACHE_FILE
 	)
+	os.execute(script)
 end
 
 local function iso_utc_to_epoch(iso)
@@ -80,7 +83,7 @@ function M.component(window)
 		return ""
 	end
 	local daily_json = content:sub(1, sep_start - 1)
-	local blocks_json = content:sub(sep_end + 1)
+	local usage_json = content:sub(sep_end + 1)
 
 	local cost = daily_json:match('"totalCost":%s*([%d%.]+)')
 	if not cost then
@@ -90,25 +93,23 @@ function M.component(window)
 	local parts = {}
 	table.insert(parts, string.format("󰚩 $%.2f", tonumber(cost)))
 
-	local has_blocks = not blocks_json:match('"blocks":%s*%[%s*%]')
-	if has_blocks then
-		local end_time = blocks_json:match('"endTime":%s*"([^"]+)"')
-		if end_time then
-			local epoch = iso_utc_to_epoch(end_time)
-			if epoch then
-				local remaining = epoch - os.time()
-				if remaining > 0 then
-					local hours = math.floor(remaining / 3600)
-					local mins = math.floor((remaining % 3600) / 60)
-					table.insert(parts, string.format("󱎫 %dh%02dm", hours, mins))
-				end
+	-- Parse Anthropic OAuth API response (five_hour window)
+	local resets_at = usage_json:match('"resets_at":%s*"([^"]+)"')
+	if resets_at then
+		local epoch = iso_utc_to_epoch(resets_at)
+		if epoch then
+			local remaining = epoch - os.time()
+			if remaining > 0 then
+				local hours = math.floor(remaining / 3600)
+				local mins = math.floor((remaining % 3600) / 60)
+				table.insert(parts, string.format("󱎫 %dh%02dm", hours, mins))
 			end
 		end
+	end
 
-		local pct = blocks_json:match('"percentUsed":%s*([%d%.]+)')
-		if pct then
-			table.insert(parts, string.format("󰓅 %.0f%%", tonumber(pct)))
-		end
+	local utilization = usage_json:match('"utilization":%s*([%d%.]+)')
+	if utilization then
+		table.insert(parts, string.format("󰓅 %.0f%%", tonumber(utilization)))
 	end
 
 	return table.concat(parts, "  ")
