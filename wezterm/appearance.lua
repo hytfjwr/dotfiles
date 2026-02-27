@@ -48,7 +48,6 @@ function M.apply(config)
 		},
 		interpolation = "Linear",
 		blend = "Rgb",
-		noise = 8,
 		segment_size = 11,
 		segment_smoothness = 1.0,
 	}
@@ -67,7 +66,7 @@ function M.apply(config)
 	-- レンダリング設定
 	config.front_end = "WebGpu"
 	config.webgpu_power_preference = "HighPerformance"
-	config.max_fps = 250
+	config.max_fps = 120
 end
 
 return M
