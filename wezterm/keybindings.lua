@@ -172,10 +172,42 @@ M.keys = {
 			end),
 		}),
 	},
-	-- プロジェクトワークスペーススイッチャー
+	-- オーバーレイ（Terminal / Neovim / Lazygit）
 	{
 		key = "p",
 		mods = "CMD|SHIFT",
+		action = wezterm.action.InputSelector({
+			title = "Open Overlay",
+			choices = {
+				{ id = "terminal", label = " Terminal" },
+				{ id = "nvim", label = " Neovim" },
+				{ id = "lazygit", label = "󰊢 Lazygit" },
+			},
+			action = wezterm.action_callback(function(window, pane, id, _label)
+				if not id then
+					return
+				end
+
+				local args = nil
+				if id == "nvim" then
+					args = { "/opt/homebrew/bin/nvim" }
+				elseif id == "lazygit" then
+					args = { "/opt/homebrew/bin/lazygit" }
+				end
+
+				local new_pane = pane:split({
+					direction = "Bottom",
+					args = args,
+				})
+
+				window:perform_action(wezterm.action.TogglePaneZoomState, new_pane)
+			end),
+		}),
+	},
+	-- プロジェクトワークスペーススイッチャー
+	{
+		key = "p",
+		mods = "CMD|OPT",
 		action = wezterm.action_callback(function(window, pane)
 			local projects = get_projects()
 
