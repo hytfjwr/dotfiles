@@ -10,7 +10,7 @@ local resurrect = wezterm.plugin.require("https://github.com/MLFlexer/resurrect.
 
 -- 最後にアクティブだった非nvimペインを追跡
 local last_written_pane_id = nil
-wezterm.on("update-status", function(pane)
+wezterm.on("update-status", function(_, pane)
 	local process = pane:get_foreground_process_name() or ""
 	local basename = process:match("([^/]+)$") or ""
 	if basename ~= "nvim" then
