@@ -104,6 +104,33 @@ M.keys = {
 		mods = "CMD|SHIFT",
 		action = wezterm.action.ActivateTabRelative(1),
 	},
+	-- タブ順序入れ替え（方向キー）
+	{
+		key = "LeftArrow",
+		mods = "CMD|CTRL",
+		action = wezterm.action_callback(function(window, pane)
+			local tabs = window:mux_window():tabs_with_info()
+			for _, t in ipairs(tabs) do
+				if t.is_active and t.index > 0 then
+					window:perform_action(wezterm.action.MoveTab(t.index - 1), pane)
+					return
+				end
+			end
+		end),
+	},
+	{
+		key = "RightArrow",
+		mods = "CMD|CTRL",
+		action = wezterm.action_callback(function(window, pane)
+			local tabs = window:mux_window():tabs_with_info()
+			for _, t in ipairs(tabs) do
+				if t.is_active and t.index < #tabs - 1 then
+					window:perform_action(wezterm.action.MoveTab(t.index + 1), pane)
+					return
+				end
+			end
+		end),
+	},
 	-- フォントサイズ拡大・縮小（範囲制限付き）
 	{
 		key = "+",
