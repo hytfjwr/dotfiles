@@ -55,6 +55,12 @@ mkdir -p "$HOME/.claude"
 info "Linking Claude Code settings"
 ln -sfn "$DOTFILES_DIR/claude/settings.json" "$HOME/.claude/settings.json"
 
+info "Creating ~/.config/ccstatusline directory"
+mkdir -p "$HOME/.config/ccstatusline"
+
+info "Linking ccstatusline settings"
+ln -sfn "$DOTFILES_DIR/ccstatusline/settings.json" "$HOME/.config/ccstatusline/settings.json"
+
 # VSCode (macOS)
 VSCODE_DIR="$HOME/Library/Application Support/Code/User"
 if [ -d "$VSCODE_DIR" ]; then
