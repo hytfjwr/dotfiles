@@ -4,26 +4,41 @@ local M = {}
 
 local CCUSAGE = os.getenv("HOME") .. "/.local/share/mise/shims/ccusage"
 local CACHE_FILE = "/tmp/wezterm_ccusage_cache"
+local TRIGGER_FILE = "/tmp/wezterm_ccusage_trigger"
 local CACHE_TTL = 300 -- 5 minutes
 
 -- Track when we last triggered a fetch
 local last_triggered = 0
 
+local function check_manual_trigger()
+	local f = io.open(TRIGGER_FILE, "r")
+	if f then
+		f:close()
+		os.remove(TRIGGER_FILE)
+		return true
+	end
+	return false
+end
+
 local function trigger_fetch()
+	local manual = check_manual_trigger()
 	local now = os.time()
-	if now - last_triggered < CACHE_TTL then
+	if not manual and now - last_triggered < CACHE_TTL then
 		return
 	end
 	last_triggered = now
 
 	local today = os.date("%Y%m%d")
-	-- Run in background: spawn detached process that writes to cache file
+	-- Run in background: write to temp file then atomic rename to avoid partial reads
+	local tmp = CACHE_FILE .. ".tmp"
 	os.execute(
 		string.format(
-			"(%s daily --json --since %s --offline 2>/dev/null; echo __SEP__; %s blocks --active --json --offline --token-limit max 2>/dev/null) > %s 2>/dev/null &",
+			"(%s daily --json --since %s --offline 2>/dev/null; echo __SEP__; %s blocks --active --json --offline --token-limit max 2>/dev/null) > %s 2>/dev/null && mv %s %s &",
 			CCUSAGE,
 			today,
 			CCUSAGE,
+			tmp,
+			tmp,
 			CACHE_FILE
 		)
 	)
