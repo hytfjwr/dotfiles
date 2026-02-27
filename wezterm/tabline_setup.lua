@@ -1,6 +1,5 @@
 -- WezTerm tabline plugin setup
 local wezterm = require("wezterm")
-local diagnostics = require("diagnostics")
 
 local M = {}
 
@@ -43,9 +42,6 @@ function M.setup(config)
 				{ "cwd", max_length = 20, padding = { left = 0, right = 1 } },
 			},
 			tabline_x = {
-				diagnostics.diag_fg,
-				diagnostics.nvim_diagnostics_text,
-				"ResetAttributes",
 				"ram",
 				"cpu",
 			},
