@@ -1,5 +1,6 @@
 -- WezTerm tabline plugin setup
 local wezterm = require("wezterm")
+local claude_usage = require("claude_usage")
 
 local M = {}
 
@@ -42,6 +43,7 @@ function M.setup(config)
 				{ "cwd", max_length = 20, padding = { left = 0, right = 1 } },
 			},
 			tabline_x = {
+				claude_usage.component,
 				"ram",
 				"cpu",
 			},
