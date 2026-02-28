@@ -91,7 +91,10 @@ sketchybar --add item time right \
 ##### Focus Timer #####
 source "$CONFIG_DIR/items/focus_timer.sh"
 
-# システムモニター（左から右の順：VPN、ネットワーク、メモリアイコン+グラフ、CPUアイコン+グラフ）
+# システムモニター（左から右の順：Docker、VPN、ネットワーク、メモリアイコン+グラフ、CPUアイコン+グラフ）
+##### Docker Container Status #####
+source "$CONFIG_DIR/items/docker.sh"
+
 source "$CONFIG_DIR/items/vpn.sh"
 
 sketchybar --add item network_up right \
