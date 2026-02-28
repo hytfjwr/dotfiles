@@ -85,13 +85,11 @@ function M.component(window)
 	local daily_json = content:sub(1, sep_start - 1)
 	local usage_json = content:sub(sep_end + 1)
 
-	local cost = daily_json:match('"totalCost":%s*([%d%.]+)')
-	if not cost then
-		return ""
-	end
-
 	local parts = {}
-	table.insert(parts, string.format("󰚩 $%.2f", tonumber(cost)))
+
+	-- Daily cost (defaults to $0.00 if no usage today)
+	local cost = daily_json:match('"totalCost":%s*([%d%.]+)')
+	table.insert(parts, string.format("󰚩 $%.2f", tonumber(cost or "0")))
 
 	-- Parse Anthropic OAuth API response (five_hour window)
 	local resets_at = usage_json:match('"resets_at":%s*"([^"]+)"')
