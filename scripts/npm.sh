@@ -9,4 +9,7 @@ section "Installing npm packages"
 info "Installing ccusage..."
 npm install -g ccusage
 
+info "Installing pnpm..."
+npm install -g pnpm
+
 section "npm setup complete"

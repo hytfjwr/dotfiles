@@ -20,6 +20,9 @@ export LANG=ja_JP.UTF-8
 export PATH="/opt/homebrew/opt/ansible@10/bin:$PATH"
 export PATH="/opt/homebrew/opt/bison/bin:$PATH"
 
+# Prevent Homebrew from installing runtimes managed by mise
+export HOMEBREW_FORBIDDEN_FORMULAE="node python python@3.11 python@3.12 python@3.13 php go rust ruby"
+
 # mise - universal version manager
 eval "$(mise activate zsh)"
 
