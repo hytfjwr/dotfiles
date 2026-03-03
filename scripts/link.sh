@@ -51,6 +51,7 @@ ln -sfn "$DOTFILES_DIR/local_bin/env" "$HOME/.local/bin/env"
 ln -sfn "$DOTFILES_DIR/local_bin/env.fish" "$HOME/.local/bin/env.fish"
 ln -sfn "$DOTFILES_DIR/local_bin/aerospace-fix-windows" "$HOME/.local/bin/aerospace-fix-windows"
 ln -sfn "$DOTFILES_DIR/local_bin/nvim-clean" "$HOME/.local/bin/nvim-clean"
+ln -sfn "$DOTFILES_DIR/local_bin/awake" "$HOME/.local/bin/awake"
 
 info "Creating ~/.claude directory"
 mkdir -p "$HOME/.claude"
