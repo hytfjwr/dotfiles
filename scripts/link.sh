@@ -34,6 +34,9 @@ ln -sfn "$DOTFILES_DIR/ghostty" "$HOME/.config/ghostty"
 info "Linking sketchybar"
 ln -sfn "$DOTFILES_DIR/sketchybar" "$HOME/.config/sketchybar"
 
+info "Linking gh"
+ln -sfn "$DOTFILES_DIR/gh" "$HOME/.config/gh"
+
 info "Creating ~/.config/mise directory"
 mkdir -p "$HOME/.config/mise"
 
