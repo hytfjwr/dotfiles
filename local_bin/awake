@@ -1,0 +1,111 @@
+#!/bin/bash
+# awake - Temporarily disable sleep and display-off on all power sources
+#
+# Overrides pmset settings for both battery and AC power to prevent sleep.
+# Saves original settings on 'on' and restores them on 'off'. Requires sudo.
+
+set -euo pipefail
+
+STATE_DIR="$HOME/.local/state/awake"
+STATE_FILE="$STATE_DIR/saved_settings"
+
+# Get a pmset value for a given power source section
+# Usage: get_pmset_value <section> <key>
+#   section: "Battery Power" or "AC Power"
+get_pmset_value() {
+    pmset -g custom | sed -n "/$1/,/^[^ ]/p" | grep -w "$2" | awk '{print $2}'
+}
+
+cmd_on() {
+    if [ -f "$STATE_FILE" ]; then
+        echo "awake is already enabled. Run 'awake off' first."
+        exit 1
+    fi
+
+    # Save current settings
+    mkdir -p "$STATE_DIR"
+    {
+        echo "battery_displaysleep=$(get_pmset_value "Battery Power" displaysleep)"
+        echo "battery_sleep=$(get_pmset_value "Battery Power" sleep)"
+        echo "battery_disksleep=$(get_pmset_value "Battery Power" disksleep)"
+        echo "ac_displaysleep=$(get_pmset_value "AC Power" displaysleep)"
+        echo "ac_sleep=$(get_pmset_value "AC Power" sleep)"
+        echo "ac_disksleep=$(get_pmset_value "AC Power" disksleep)"
+    } > "$STATE_FILE"
+
+    # Disable sleep and display-off on all power sources
+    sudo pmset -a displaysleep 0 sleep 0 disksleep 0
+
+    echo "awake ON: Disabled sleep and display-off on all power sources."
+    echo "Run 'awake off' to restore original settings."
+}
+
+cmd_off() {
+    if [ ! -f "$STATE_FILE" ]; then
+        echo "awake is not enabled."
+        exit 1
+    fi
+
+    # Load saved settings
+    saved_b_displaysleep="$(grep '^battery_displaysleep=' "$STATE_FILE" | cut -d= -f2)"
+    saved_b_sleep="$(grep '^battery_sleep=' "$STATE_FILE" | cut -d= -f2)"
+    saved_b_disksleep="$(grep '^battery_disksleep=' "$STATE_FILE" | cut -d= -f2)"
+    saved_c_displaysleep="$(grep '^ac_displaysleep=' "$STATE_FILE" | cut -d= -f2)"
+    saved_c_sleep="$(grep '^ac_sleep=' "$STATE_FILE" | cut -d= -f2)"
+    saved_c_disksleep="$(grep '^ac_disksleep=' "$STATE_FILE" | cut -d= -f2)"
+
+    # Restore settings
+    sudo pmset -b \
+        displaysleep "$saved_b_displaysleep" \
+        sleep "$saved_b_sleep" \
+        disksleep "$saved_b_disksleep"
+    sudo pmset -c \
+        displaysleep "$saved_c_displaysleep" \
+        sleep "$saved_c_sleep" \
+        disksleep "$saved_c_disksleep"
+
+    rm -f "$STATE_FILE"
+
+    echo "awake OFF: Power settings restored."
+}
+
+cmd_status() {
+    if [ -f "$STATE_FILE" ]; then
+        echo "Status: ON (sleep disabled)"
+        echo ""
+        echo "Saved original settings:"
+        sed 's/^/  /' "$STATE_FILE"
+    else
+        echo "Status: OFF (normal)"
+    fi
+    echo ""
+    echo "Current settings:"
+    echo "  [Battery]"
+    echo "    displaysleep = $(get_pmset_value "Battery Power" displaysleep)"
+    echo "    sleep        = $(get_pmset_value "Battery Power" sleep)"
+    echo "    disksleep    = $(get_pmset_value "Battery Power" disksleep)"
+    echo "  [AC]"
+    echo "    displaysleep = $(get_pmset_value "AC Power" displaysleep)"
+    echo "    sleep        = $(get_pmset_value "AC Power" sleep)"
+    echo "    disksleep    = $(get_pmset_value "AC Power" disksleep)"
+}
+
+case "${1:-}" in
+    on)     cmd_on ;;
+    off)    cmd_off ;;
+    status) cmd_status ;;
+    --help|-h)
+        echo "Usage: awake <on|off|status>"
+        echo ""
+        echo "Commands:"
+        echo "  on      Disable sleep and display-off on all power sources"
+        echo "  off     Restore original settings"
+        echo "  status  Show current state and settings"
+        exit 0
+        ;;
+    *)
+        echo "Usage: awake <on|off|status>"
+        echo "Run 'awake --help' for details."
+        exit 1
+        ;;
+esac
