@@ -6,6 +6,16 @@ source "$SCRIPT_DIR/lib/colors.sh"
 
 section "Applying macOS settings"
 
+info "Enable Touch ID for sudo"
+SUDO_LOCAL="/etc/pam.d/sudo_local"
+TOUCHID_LINE="auth       sufficient     pam_tid.so"
+if [ ! -f "$SUDO_LOCAL" ] || ! grep -q "pam_tid.so" "$SUDO_LOCAL"; then
+  echo "$TOUCHID_LINE" | sudo tee "$SUDO_LOCAL" > /dev/null
+  info "Touch ID for sudo enabled"
+else
+  info "Touch ID for sudo already configured"
+fi
+
 info "Show all file extensions in Finder"
 defaults write NSGlobalDomain AppleShowAllExtensions -bool true
 
