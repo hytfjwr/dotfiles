@@ -18,7 +18,7 @@ The `setup.sh` script runs the following in order:
 2. **link.sh** - Creates symlinks for configuration files
 3. **mise.sh** - Sets up mise and installs tool versions
 4. **npm.sh** - Installs global npm packages
-5. **claude.sh** - Installs Claude Code
+5. **claude.sh** - Sets up Claude Code
 6. **bun.sh** - Installs bun and adds it to PATH in `.zshrc`
 7. **ohmyzsh.sh** - Sets up Oh My Zsh with plugins
 8. **macos.sh** - Applies macOS system preferences
@@ -33,11 +33,10 @@ make link      # Create symlinks only
 make mise      # Set up mise and install tools
 make npm       # Install npm packages only
 make claude    # Set up Claude Code
-make bun       # Install bun
 make ohmyzsh   # Set up Oh My Zsh only
 make macos     # Apply macOS settings only
 make format    # Format Lua files with StyLua
-make lint      # Check Lua formatting
+make lint      # Check Lua formatting and shell scripts
 ```
 
 Or run scripts directly:
