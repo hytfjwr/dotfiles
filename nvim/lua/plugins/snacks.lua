@@ -115,7 +115,7 @@ d8'   .8P 88     88     88    Y8.   .8P  88     88 88    .8P 88     88     88
       },
     },
     explorer = {
-      enabled = true,
+      enabled = false,
       ignored = true,
     },
     indent = { enabled = true },
