@@ -36,7 +36,7 @@ local function trigger_fetch()
 echo __SEP__
 TOKEN=$(security find-generic-password -s "Claude Code-credentials" -w 2>/dev/null | python3 -c "import sys,json;print(json.load(sys.stdin).get('claudeAiOauth',{}).get('accessToken',''))" 2>/dev/null)
 if [ -n "$TOKEN" ]; then
-  curl -s -H "Authorization: Bearer $TOKEN" -H "anthropic-beta: oauth-2025-04-20" "https://api.anthropic.com/api/oauth/usage" 2>/dev/null
+  curl -s -H "Authorization: Bearer $TOKEN" -H "anthropic-beta: oauth-2025-04-20" -H "User-Agent: claude-code/2.1.70" -H "Accept: application/json" "https://api.anthropic.com/api/oauth/usage" 2>/dev/null
 fi) > %s 2>/dev/null && mv %s %s &]=],
 		CCUSAGE,
 		today,
