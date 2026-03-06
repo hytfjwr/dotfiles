@@ -14,14 +14,14 @@ return {
           visible = true,
           hide_gitignored = false,
         },
-        follow_curent_file = {
-          enebled = true,
+        follow_current_file = {
+          enabled = true,
           leave_dirs_open = true,
         },
       },
     },
     keys = {
-      { "<leader>e", "<cmd>Neotree toggle<cr>", desc = "Neotree" },
+      { "<leader>e", "<cmd>Neotree reveal<cr>", desc = "Neotree" },
     },
   },
 }
