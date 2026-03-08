@@ -2,7 +2,13 @@
 
 source "$CONFIG_DIR/colors.sh"
 
-FOCUSED_WORKSPACE=$(aerospace list-workspaces --focused --format "%{workspace}")
+# aerospace CLI がハングするとプロセスが滞留するため、タイムアウトを設定
+AEROSPACE_TIMEOUT=3
+
+FOCUSED_WORKSPACE=$(timeout "$AEROSPACE_TIMEOUT" aerospace list-workspaces --focused --format "%{workspace}")
+if [ $? -ne 0 ]; then
+  exit 0
+fi
 
 # マウスホバー: フォーカス中のワークスペースは無視
 if [ "$SENDER" = "mouse.entered" ]; then
@@ -32,7 +38,10 @@ fi
 # アプリアイコンのリガチャを構築
 icons=""
 
-APPS_INFO=$(aerospace list-windows --workspace "$1" --json --format "%{monitor-appkit-nsscreen-screens-id}%{app-name}")
+APPS_INFO=$(timeout "$AEROSPACE_TIMEOUT" aerospace list-windows --workspace "$1" --json --format "%{monitor-appkit-nsscreen-screens-id}%{app-name}")
+if [ $? -ne 0 ]; then
+  exit 0
+fi
 
 IFS=$'\n'
 for app in $(echo "$APPS_INFO" | jq -r 'map(."app-name") | unique | .[]'); do
