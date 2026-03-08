@@ -59,6 +59,12 @@ mkdir -p "$HOME/.claude"
 info "Linking Claude Code settings"
 ln -sfn "$DOTFILES_DIR/claude/settings.json" "$HOME/.claude/settings.json"
 
+info "Linking Claude Code skills"
+ln -sfn "$DOTFILES_DIR/claude/skills" "$HOME/.claude/skills"
+
+info "Linking Claude Code rules"
+ln -sfn "$DOTFILES_DIR/claude/rules" "$HOME/.claude/rules"
+
 info "Creating ~/.config/ccstatusline directory"
 mkdir -p "$HOME/.config/ccstatusline"
 
