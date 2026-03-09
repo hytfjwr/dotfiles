@@ -1,16 +1,12 @@
 #!/bin/bash
 
+# ワークスペースアイテムを作成（初期状態は非表示）
+# 表示更新はaerospace_update.shが一括で担当
 for sid in $(aerospace list-workspaces --all); do
-  monitor=$(aerospace list-windows --workspace "$sid" --format "%{monitor-appkit-nsscreen-screens-id}")
-
-  if [ -z "$monitor" ]; then
-    monitor="1"
-  fi
-
   sketchybar --add item space."$sid" left \
-    --subscribe space."$sid" aerospace_workspace_change space_windows_change display_change system_woke mouse.entered mouse.exited \
+    --subscribe space."$sid" mouse.entered mouse.exited \
     --set space."$sid" \
-    display="$monitor" \
+    drawing=off \
     padding_right=0 \
     icon="$sid" \
     icon.font="SF Pro:Bold:14.0" \
