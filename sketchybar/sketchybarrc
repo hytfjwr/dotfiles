@@ -45,6 +45,12 @@ sketchybar --add event aerospace_workspace_change \
 # AeroSpaceワークスペース表示
 source "$CONFIG_DIR/items/spaces.sh"
 
+# ワークスペース一括更新（ワークスペース変更イベント + 5秒ごとの定期更新）
+sketchybar --add item aerospace_monitor left \
+           --subscribe aerospace_monitor aerospace_workspace_change display_change system_woke \
+           --set aerospace_monitor drawing=off update_freq=5 \
+           script="$CONFIG_DIR/plugins/aerospace_update.sh"
+
 ##### Adding Left Items #####
 # We add some regular items to the left side of the bar, where
 # only the properties deviating from the current defaults need to be set
