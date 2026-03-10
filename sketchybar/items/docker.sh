@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# OrbStack / Homebrew の docker CLI にパスを通す
+export PATH="$HOME/.orbstack/bin:/opt/homebrew/bin:$PATH"
+
 # ────────────────────────────────────
 # ▸ Docker Container Status
 # ────────────────────────────────────

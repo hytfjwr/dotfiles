@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# OrbStack / Homebrew の docker CLI にパスを通す
+export PATH="$HOME/.orbstack/bin:/opt/homebrew/bin:$PATH"
+
 # Colors
 COLOR_GREEN=0xff50fa7b
 COLOR_YELLOW=0xfff1fa8c
