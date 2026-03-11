@@ -35,6 +35,10 @@ default=(
 )
 sketchybar --default "${default[@]}"
 
+##### Adding Left Items #####
+# Apple menu (leftmost item)
+source "$CONFIG_DIR/items/apple.sh"
+
 ##### Adding AeroSpace Workspace Indicators #####
 # AeroSpace workspace integration
 # https://nikitabobko.github.io/AeroSpace/goodies
@@ -51,10 +55,6 @@ sketchybar --add item aerospace_monitor left \
            --subscribe aerospace_monitor aerospace_workspace_change display_change system_woke \
            --set aerospace_monitor drawing=off update_freq=5 \
            script="$CONFIG_DIR/plugins/aerospace_update.sh"
-
-##### Adding Left Items #####
-# We add some regular items to the left side of the bar, where
-# only the properties deviating from the current defaults need to be set
 
 sketchybar --add item chevron left \
            --set chevron icon= label.drawing=off \
@@ -75,6 +75,7 @@ sketchybar --add item chevron left \
 
 sketchybar --add item time right \
            --set time update_freq=2 \
+                 padding_right=0 \
                  icon.padding_right=0 \
                  label.padding_left=0 \
                  script="$PLUGIN_DIR/time.sh" \
