@@ -21,6 +21,11 @@ __icon_map() {
         "TablePlus") echo ":tableplus:" ;;
         "Raycast") echo ":raycast:" ;;
         "OrbStack") echo ":orbstack:" ;;
+        "Finder") echo ":finder:" ;;
+        "Activity Monitor") echo ":activity_monitor:" ;;
+        "Mail") echo ":mail:" ;;
+        "Claude") echo ":claude:" ;;
+        "Calendar") echo ":calendar:" ;;
         "Terminal" | "ターミナル") echo ":terminal:" ;;
         *) echo ":default:" ;;
     esac
