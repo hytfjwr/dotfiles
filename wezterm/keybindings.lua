@@ -1,6 +1,8 @@
 -- WezTerm keybindings
 local wezterm = require("wezterm")
 
+local resurrect = wezterm.plugin.require("https://github.com/MLFlexer/resurrect.wezterm")
+
 local M = {}
 
 -- フォントサイズ制限
@@ -186,7 +188,18 @@ M.keys = {
 			end
 		end),
 	},
-	-- タブ名変更
+	-- wezterm resurrect 手動保存
+	{
+		key = "R",
+		mods = "CMD|SHIFT",
+		action = wezterm.action_callback(function(window, pane)
+			local workspace = wezterm.mux.get_active_workspace()
+			resurrect.state_manager.save_state(resurrect.workspace_state.get_workspace_state())
+			resurrect.state_manager.write_current_state(workspace, "workspace")
+			window:toast_notification("WezTerm", "Workspace saved: " .. workspace)
+		end),
+	},
+	-- タブ名を変更
 	{
 		key = "o",
 		mods = "CMD|SHIFT",
