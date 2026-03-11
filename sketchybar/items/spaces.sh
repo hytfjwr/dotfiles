@@ -11,6 +11,7 @@ for sid in $(aerospace list-workspaces --all); do
     icon="$sid" \
     icon.font="SF Pro:Bold:14.0" \
     label.font="sketchybar-app-font:Regular:18.0" \
+    label.y_offset=-2 \
     label.padding_right=7 \
     icon.padding_left=7 \
     icon.padding_right=4 \
