@@ -38,6 +38,16 @@ mouse_clicked() {
   sketchybar --set apple.anchor popup.drawing=off
 }
 
+mouse_entered() {
+  sketchybar --set "$NAME" background.color=0x30ffffff
+}
+
+mouse_exited() {
+  sketchybar --set "$NAME" background.color=0x00ffffff
+}
+
 case "$SENDER" in
   "mouse.clicked") mouse_clicked ;;
+  "mouse.entered") mouse_entered ;;
+  "mouse.exited")  mouse_exited ;;
 esac

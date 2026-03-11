@@ -79,19 +79,32 @@ update() {
   fi
 
   # 各コンテナアイテムの状態更新
-  local i=0
-  docker ps -a --format '{{.Names}}' | while IFS= read -r name; do
+  local i=0 max_len=0
+  while IFS= read -r name; do
     local item_name="docker.item.${i}"
-    local status color uptime
+    local status color uptime label
     status=$(get_container_status "$name")
     color=$(status_icon_color "$status")
     uptime=$(format_uptime "$name" "$status")
+    label="$name  $uptime"
+    local len=${#label}
+    [ "$len" -gt "$max_len" ] && max_len=$len
 
     sketchybar --set "$item_name" \
                      icon.color="$color" \
-                     label="$name  $uptime"
+                     label="$label"
     i=$((i + 1))
-  done
+  done < <(docker ps -a --format '{{.Names}}')
+
+  # 全アイテムの幅をポップアップ幅に揃える
+  if [ "$i" -gt 0 ]; then
+    local popup_width=$(( max_len * 8 + 44 ))
+    local width_args=""
+    for j in $(seq 0 $((i - 1))); do
+      width_args+=" --set docker.item.$j width=$popup_width"
+    done
+    sketchybar $width_args
+  fi
 }
 
 # ────────────────────────────────────
@@ -121,7 +134,17 @@ mouse_clicked() {
 # ▸ Entry Point
 # ────────────────────────────────────
 
+mouse_entered() {
+  sketchybar --set "$NAME" background.color=0x30ffffff
+}
+
+mouse_exited() {
+  sketchybar --set "$NAME" background.color=0x00ffffff
+}
+
 case "$SENDER" in
   "mouse.clicked") mouse_clicked ;;
+  "mouse.entered") mouse_entered ;;
+  "mouse.exited")  mouse_exited ;;
   *) update ;;
 esac
