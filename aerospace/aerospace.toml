@@ -61,9 +61,9 @@ inner.vertical = 0
 outer.left = 0
 outer.bottom = 0
 outer.top = [
-  { monitor.built-in = 6 },
-  40,
-] # Sketchybarの高さ分確保（内蔵ディスプレイはノッチ分を差し引く）
+  { monitor.built-in = 14 },
+  52,
+] # Sketchybarの高さ+マージン分確保（内蔵ディスプレイはノッチ分を差し引く）
 outer.right = 0
 [mode.main.binding]
 alt-slash = 'layout tiles horizontal vertical'
