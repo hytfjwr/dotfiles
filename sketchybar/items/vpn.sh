@@ -32,8 +32,12 @@ scutil --nc list | sed -n 's/.*"\(.*\)".*/\1/p' | while IFS= read -r vpn_name; d
                    label.font="SF Pro:Semibold:13.0" \
                    padding_left=4 \
                    padding_right=4 \
+                   background.color=0x00ffffff \
+                   background.corner_radius=8 \
+                   background.height=40 \
+                   background.drawing=on \
                    script="$PLUGIN_DIR/vpn.sh" \
-             --subscribe "$item_name" mouse.clicked
+             --subscribe "$item_name" mouse.clicked mouse.entered mouse.exited
 
   VPN_INDEX=$((VPN_INDEX + 1))
 done

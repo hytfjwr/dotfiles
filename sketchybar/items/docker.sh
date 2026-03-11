@@ -36,8 +36,12 @@ if command -v docker &>/dev/null && docker info &>/dev/null; then
                      label.font="SF Pro:Semibold:13.0" \
                      padding_left=4 \
                      padding_right=4 \
+                     background.color=0x00ffffff \
+                     background.corner_radius=8 \
+                     background.height=40 \
+                     background.drawing=on \
                      script="$PLUGIN_DIR/docker.sh" \
-               --subscribe "$item_name" mouse.clicked
+               --subscribe "$item_name" mouse.clicked mouse.entered mouse.exited
 
     DOCKER_INDEX=$((DOCKER_INDEX + 1))
   done

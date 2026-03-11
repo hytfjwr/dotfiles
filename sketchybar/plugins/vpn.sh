@@ -56,20 +56,20 @@ get_vpn_name() {
 # ────────────────────────────────────
 
 update() {
-  local any_connected=false
-  local i=0
+  local i=0 max_len=0
 
-  scutil --nc list | sed -n 's/.*"\(.*\)".*/\1/p' | while IFS= read -r name; do
+  while IFS= read -r name; do
     local item_name="vpn.item.${i}"
+    local label
 
     if is_vpn_connected "$name"; then
-      any_connected=true
       record_last_used "$name"
+      label="$name  Connected"
       sketchybar --set "$item_name" \
                        icon.color=$COLOR_BLUE \
-                       label="$name  Connected"
+                       label="$label"
     else
-      local ts label
+      local ts
       ts=$(get_last_used "$name")
       if [ -n "$ts" ]; then
         label="$name  Last: $(relative_time "$ts")"
@@ -81,8 +81,20 @@ update() {
                        label="$label"
     fi
 
+    local len=${#label}
+    [ "$len" -gt "$max_len" ] && max_len=$len
     i=$((i + 1))
-  done
+  done < <(scutil --nc list | sed -n 's/.*"\(.*\)".*/\1/p')
+
+  # 全アイテムの幅をポップアップ幅に揃える
+  if [ "$i" -gt 0 ]; then
+    local popup_width=$(( max_len * 8 + 44 ))
+    local width_args=""
+    for j in $(seq 0 $((i - 1))); do
+      width_args+=" --set vpn.item.$j width=$popup_width"
+    done
+    sketchybar $width_args
+  fi
 
   # Anchor color
   if scutil --nc list | grep -q "Connected"; then
@@ -117,7 +129,17 @@ mouse_clicked() {
 # ▸ Entry Point
 # ────────────────────────────────────
 
+mouse_entered() {
+  sketchybar --set "$NAME" background.color=0x30ffffff
+}
+
+mouse_exited() {
+  sketchybar --set "$NAME" background.color=0x00ffffff
+}
+
 case "$SENDER" in
   "mouse.clicked") mouse_clicked ;;
+  "mouse.entered") mouse_entered ;;
+  "mouse.exited")  mouse_exited ;;
   *) update ;;
 esac

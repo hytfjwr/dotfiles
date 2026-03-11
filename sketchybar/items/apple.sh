@@ -31,6 +31,11 @@ apple_preferences=(
   label.font="SF Pro:Semibold:13.0"
   padding_left=4
   padding_right=4
+  width=220
+  background.color=0x00ffffff
+  background.corner_radius=8
+  background.height=40
+  background.drawing=on
   script="$PLUGIN_DIR/apple.sh"
 )
 
@@ -42,6 +47,11 @@ apple_lock=(
   label.font="SF Pro:Semibold:13.0"
   padding_left=4
   padding_right=4
+  width=220
+  background.color=0x00ffffff
+  background.corner_radius=8
+  background.height=40
+  background.drawing=on
   script="$PLUGIN_DIR/apple.sh"
 )
 
@@ -53,6 +63,11 @@ apple_reload=(
   label.font="SF Pro:Semibold:13.0"
   padding_left=4
   padding_right=4
+  width=220
+  background.color=0x00ffffff
+  background.corner_radius=8
+  background.height=40
+  background.drawing=on
   script="$PLUGIN_DIR/apple.sh"
 )
 
@@ -64,6 +79,11 @@ apple_fix_windows=(
   label.font="SF Pro:Semibold:13.0"
   padding_left=4
   padding_right=4
+  width=220
+  background.color=0x00ffffff
+  background.corner_radius=8
+  background.height=40
+  background.drawing=on
   script="$PLUGIN_DIR/apple.sh"
 )
 
@@ -75,6 +95,11 @@ apple_sleep=(
   label.font="SF Pro:Semibold:13.0"
   padding_left=4
   padding_right=4
+  width=220
+  background.color=0x00ffffff
+  background.corner_radius=8
+  background.height=40
+  background.drawing=on
   script="$PLUGIN_DIR/apple.sh"
 )
 
@@ -86,6 +111,11 @@ apple_restart=(
   label.font="SF Pro:Semibold:13.0"
   padding_left=4
   padding_right=4
+  width=220
+  background.color=0x00ffffff
+  background.corner_radius=8
+  background.height=40
+  background.drawing=on
   script="$PLUGIN_DIR/apple.sh"
 )
 
@@ -97,6 +127,11 @@ apple_shutdown=(
   label.font="SF Pro:Semibold:13.0"
   padding_left=4
   padding_right=4
+  width=220
+  background.color=0x00ffffff
+  background.corner_radius=8
+  background.height=40
+  background.drawing=on
   script="$PLUGIN_DIR/apple.sh"
 )
 
@@ -108,6 +143,11 @@ apple_awake=(
   label.font="SF Pro:Semibold:13.0"
   padding_left=4
   padding_right=4
+  width=220
+  background.color=0x00ffffff
+  background.corner_radius=8
+  background.height=40
+  background.drawing=on
   script="$PLUGIN_DIR/apple.sh"
 )
 
@@ -119,6 +159,11 @@ apple_nvim_clean=(
   label.font="SF Pro:Semibold:13.0"
   padding_left=4
   padding_right=4
+  width=220
+  background.color=0x00ffffff
+  background.corner_radius=8
+  background.height=40
+  background.drawing=on
   script="$PLUGIN_DIR/apple.sh"
 )
 
@@ -132,36 +177,36 @@ sketchybar --add item apple.anchor left                                    \
                                                                             \
            --add item apple.preferences popup.apple.anchor                 \
            --set apple.preferences "${apple_preferences[@]}"               \
-           --subscribe apple.preferences mouse.clicked                     \
+           --subscribe apple.preferences mouse.clicked mouse.entered mouse.exited \
                                                                             \
            --add item apple.lock popup.apple.anchor                        \
            --set apple.lock "${apple_lock[@]}"                             \
-           --subscribe apple.lock mouse.clicked                            \
+           --subscribe apple.lock mouse.clicked mouse.entered mouse.exited \
                                                                             \
            --add item apple.sleep popup.apple.anchor                       \
            --set apple.sleep "${apple_sleep[@]}"                           \
-           --subscribe apple.sleep mouse.clicked                           \
+           --subscribe apple.sleep mouse.clicked mouse.entered mouse.exited \
                                                                             \
            --add item apple.restart popup.apple.anchor                     \
            --set apple.restart "${apple_restart[@]}"                       \
-           --subscribe apple.restart mouse.clicked                         \
+           --subscribe apple.restart mouse.clicked mouse.entered mouse.exited \
                                                                             \
            --add item apple.shutdown popup.apple.anchor                    \
            --set apple.shutdown "${apple_shutdown[@]}"                     \
-           --subscribe apple.shutdown mouse.clicked                        \
+           --subscribe apple.shutdown mouse.clicked mouse.entered mouse.exited \
                                                                             \
            --add item apple.reload popup.apple.anchor                      \
            --set apple.reload "${apple_reload[@]}"                         \
-           --subscribe apple.reload mouse.clicked                          \
+           --subscribe apple.reload mouse.clicked mouse.entered mouse.exited \
                                                                             \
            --add item apple.fix_windows popup.apple.anchor                 \
            --set apple.fix_windows "${apple_fix_windows[@]}"               \
-           --subscribe apple.fix_windows mouse.clicked                     \
+           --subscribe apple.fix_windows mouse.clicked mouse.entered mouse.exited \
                                                                             \
            --add item apple.awake popup.apple.anchor                       \
            --set apple.awake "${apple_awake[@]}"                           \
-           --subscribe apple.awake mouse.clicked                           \
+           --subscribe apple.awake mouse.clicked mouse.entered mouse.exited \
                                                                             \
            --add item apple.nvim_clean popup.apple.anchor                  \
            --set apple.nvim_clean "${apple_nvim_clean[@]}"                 \
-           --subscribe apple.nvim_clean mouse.clicked
+           --subscribe apple.nvim_clean mouse.clicked mouse.entered mouse.exited
