@@ -1,3 +1,4 @@
+use chrono::DateTime;
 use serde::Deserialize;
 use std::fmt::Write;
 use std::io::Read;
@@ -186,12 +187,60 @@ fn git_branch() -> Option<String> {
     None
 }
 
+/// Output structs for ~/.claude/rate_limits.json
+#[derive(serde::Serialize)]
+struct RateLimitsFile {
+    rate_limits: RateLimitsOutput,
+}
+
+#[derive(serde::Serialize)]
+struct RateLimitsOutput {
+    five_hour: Option<RateLimitOutput>,
+    seven_day: Option<RateLimitOutput>,
+}
+
+#[derive(serde::Serialize)]
+struct RateLimitOutput {
+    used_percentage: f64,
+    resets_at: String,
+}
+
+fn epoch_to_iso8601(epoch: f64) -> Option<String> {
+    let dt = DateTime::from_timestamp(epoch as i64, 0)?;
+    Some(dt.format("%Y-%m-%dT%H:%M:%SZ").to_string())
+}
+
+fn convert_rate_limit(limit: &RateLimit) -> Option<RateLimitOutput> {
+    Some(RateLimitOutput {
+        used_percentage: limit.used_percentage?,
+        resets_at: epoch_to_iso8601(limit.resets_at?)?,
+    })
+}
+
 /// Write rate_limits to /tmp for WezTerm tabline
 fn write_rate_limits(rate_limits: &Option<RateLimits>) {
     if let Some(rl) = rate_limits {
         if let Ok(json) = serde_json::to_string(rl) {
             let _ = std::fs::write("/tmp/claude_rate_limits.json", json);
         }
+    }
+}
+
+/// Write rate_limits to ~/.claude/rate_limits.json with ISO 8601 timestamps
+fn write_rate_limits_file(rate_limits: &Option<RateLimits>) {
+    let Some(rl) = rate_limits else { return };
+    let output = RateLimitsFile {
+        rate_limits: RateLimitsOutput {
+            five_hour: rl.five_hour.as_ref().and_then(convert_rate_limit),
+            seven_day: rl.seven_day.as_ref().and_then(convert_rate_limit),
+        },
+    };
+    let Ok(json) = serde_json::to_string_pretty(&output) else {
+        return;
+    };
+    if let Some(home) = std::env::var_os("HOME") {
+        let path = std::path::Path::new(&home).join(".claude/rate_limits.json");
+        let _ = std::fs::write(path, json);
     }
 }
 
@@ -206,8 +255,9 @@ fn main() {
         Err(_) => return,
     };
 
-    // Side effect: write rate_limits for WezTerm
+    // Side effect: write rate_limits for WezTerm and ~/.claude/
     write_rate_limits(&data.rate_limits);
+    write_rate_limits_file(&data.rate_limits);
 
     let mut line1: Vec<String> = Vec::new();
     let mut line2: Vec<String> = Vec::new();
