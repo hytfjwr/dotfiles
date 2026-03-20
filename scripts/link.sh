@@ -65,11 +65,12 @@ ln -sfn "$DOTFILES_DIR/claude/skills" "$HOME/.claude/skills"
 info "Linking Claude Code rules"
 ln -sfn "$DOTFILES_DIR/claude/rules" "$HOME/.claude/rules"
 
-info "Creating ~/.config/ccstatusline directory"
-mkdir -p "$HOME/.config/ccstatusline"
-
-info "Linking ccstatusline settings"
-ln -sfn "$DOTFILES_DIR/ccstatusline/settings.json" "$HOME/.config/ccstatusline/settings.json"
+if [ -f "$DOTFILES_DIR/claude/statusline/target/release/claude-statusline" ]; then
+    info "Linking claude-statusline binary"
+    ln -sfn "$DOTFILES_DIR/claude/statusline/target/release/claude-statusline" "$HOME/.local/bin/claude-statusline"
+else
+    warn "claude-statusline not built, skipping (run: make statusline)"
+fi
 
 # VSCode (macOS)
 VSCODE_DIR="$HOME/Library/Application Support/Code/User"
