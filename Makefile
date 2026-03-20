@@ -1,4 +1,4 @@
-.PHONY: all brew npm claude ohmyzsh link macos format lint mise
+.PHONY: all brew npm claude ohmyzsh link macos format lint mise statusline
 
 all:
 	./setup.sh
@@ -23,6 +23,9 @@ macos:
 
 mise:
 	./scripts/mise.sh
+
+statusline:
+	cd claude/statusline && cargo build --release
 
 format:
 	stylua .
