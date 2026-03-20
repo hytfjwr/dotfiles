@@ -209,16 +209,17 @@ fn main() {
     // Side effect: write rate_limits for WezTerm
     write_rate_limits(&data.rate_limits);
 
-    let mut sections: Vec<String> = Vec::new();
+    let mut line1: Vec<String> = Vec::new();
+    let mut line2: Vec<String> = Vec::new();
 
-    // Model name (bold)
+    // Line 1: Model name (bold)
     if let Some(ref model) = data.model {
         if let Some(ref name) = model.display_name {
-            sections.push(bold(name));
+            line1.push(bold(name));
         }
     }
 
-    // Git branch (magenta) + changes (yellow)
+    // Line 1: Git branch (magenta) + changes (yellow)
     if let Some(branch) = git_branch() {
         let magenta = (200, 100, 220);
         let branch_str = fg(&format!("\u{e0a0} {}", branch), magenta);
@@ -229,39 +230,44 @@ fn main() {
             if added > 0 || removed > 0 {
                 let yellow = (240, 200, 60);
                 let changes = fg(&format!("(+{},-{})", added, removed), yellow);
-                sections.push(format!("{} {}", branch_str, changes));
+                line1.push(format!("{} {}", branch_str, changes));
             } else {
-                sections.push(branch_str);
+                line1.push(branch_str);
             }
         } else {
-            sections.push(branch_str);
+            line1.push(branch_str);
         }
     }
 
-    // Context window (cyan theme)
+    // Line 2: Context window (cyan theme)
     if let Some(ref ctx) = data.context_window {
         if let Some(pct) = ctx.used_percentage {
             let color = theme_color(&THEME_CTX, pct);
             let label = fg("ctx", THEME_CTX.label);
             let bar = progress_bar(pct, &THEME_CTX);
             let pct_str = fg(&format!("{:.0}%", pct), color);
-            sections.push(format!("{} {} {}", label, bar, pct_str));
+            line2.push(format!("{} {} {}", label, bar, pct_str));
         }
     }
 
-    // Rate limits (5h: warm theme, 7d: purple theme)
+    // Line 2: Rate limits (5h: warm theme, 7d: purple theme)
     if let Some(ref rl) = data.rate_limits {
         if let Some(ref five) = rl.five_hour {
             if let Some(s) = build_rate_limit_section("5h", &THEME_5H, five, true) {
-                sections.push(s);
+                line2.push(s);
             }
         }
         if let Some(ref seven) = rl.seven_day {
             if let Some(s) = build_rate_limit_section("7d", &THEME_7D, seven, false) {
-                sections.push(s);
+                line2.push(s);
             }
         }
     }
 
-    print!("{}", sections.join("  "));
+    let output = if line2.is_empty() {
+        line1.join("  ")
+    } else {
+        format!("{}\n{}", line1.join("  "), line2.join("  "))
+    };
+    print!("{}", output);
 }
