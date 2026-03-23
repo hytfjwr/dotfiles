@@ -2,6 +2,7 @@
 local wezterm = require("wezterm")
 
 local resurrect = wezterm.plugin.require("https://github.com/MLFlexer/resurrect.wezterm")
+local presets = require("presets")
 
 local M = {}
 
@@ -222,9 +223,23 @@ M.keys = {
 				{ id = "terminal", label = " Terminal" },
 				{ id = "nvim", label = " Neovim" },
 				{ id = "lazygit", label = "󰊢 Lazygit" },
+				{ id = "preset_save", label = "󰆓 Save Preset" },
+				{ id = "preset_load", label = "󰂄 Load Preset" },
+				{ id = "preset_delete", label = "󰆴 Delete Preset" },
 			},
 			action = wezterm.action_callback(function(window, pane, id, _label)
 				if not id then
+					return
+				end
+
+				if id == "preset_save" then
+					presets.save(window, pane)
+					return
+				elseif id == "preset_load" then
+					presets.load(window, pane)
+					return
+				elseif id == "preset_delete" then
+					presets.delete(window, pane)
 					return
 				end
 
