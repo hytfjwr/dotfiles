@@ -1,0 +1,95 @@
+#!/bin/bash
+# wezterm-clean - WezTerm resurrect プラグインのステートを削除する
+#
+# 強制終了後などで WezTerm が起動できなくなった場合に、
+# resurrect プラグインの保存ステートを一掃するためのスクリプト。
+
+set -euo pipefail
+
+DRY_RUN=false
+ALL=false
+
+STATE_DIR="$HOME/Library/Application Support/wezterm/plugins/httpssCssZssZsgithubsDscomsZsMLFlexersZsresurrectsDswezterm/state"
+
+TARGETS=(
+    "$STATE_DIR/window"
+)
+
+ALL_TARGETS=(
+    "$STATE_DIR/window"
+    "$STATE_DIR/tab"
+    "$STATE_DIR/workspace"
+    "$STATE_DIR/current_state"
+)
+
+for arg in "$@"; do
+    case "$arg" in
+        --dry-run) DRY_RUN=true ;;
+        --all)     ALL=true ;;
+        --help|-h)
+            echo "Usage: wezterm-clean [--dry-run] [--all]"
+            echo ""
+            echo "Options:"
+            echo "  --dry-run  削除せずに対象を表示"
+            echo "  --all      window/tab/workspace/current_state すべて削除"
+            echo ""
+            echo "Default (no --all):"
+            echo "  state/window    ウィンドウステート（最も肥大化しやすい）"
+            echo ""
+            echo "With --all:"
+            echo "  state/window         ウィンドウステート"
+            echo "  state/tab            タブステート"
+            echo "  state/workspace      ワークスペースステート"
+            echo "  state/current_state  現在のステート情報"
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $arg" >&2
+            exit 1
+            ;;
+    esac
+done
+
+if [ "$ALL" = true ]; then
+    selected=("${ALL_TARGETS[@]}")
+else
+    selected=("${TARGETS[@]}")
+fi
+
+deleted=0
+
+for target in "${selected[@]}"; do
+    if [ ! -e "$target" ]; then
+        continue
+    fi
+
+    is_dir=false
+    [ -d "$target" ] && is_dir=true
+
+    if [ "$is_dir" = true ]; then
+        count="$(fd --type f . "$target" 2>/dev/null | wc -l | tr -d ' ')"
+        size="$(du -sh "$target" | cut -f1 | tr -d ' ')"
+        label="$(basename "$target") ($count files, $size)"
+    else
+        size="$(du -sh "$target" | cut -f1 | tr -d ' ')"
+        label="$(basename "$target") ($size)"
+    fi
+
+    if [ "$DRY_RUN" = true ]; then
+        echo "[dry-run] $label"
+    else
+        if [ "$is_dir" = true ]; then
+            find "$target" -mindepth 1 -delete
+        else
+            rm -f "$target"
+        fi
+        echo "Deleted $label"
+    fi
+    deleted=$((deleted + 1))
+done
+
+if [ "$deleted" -eq 0 ]; then
+    echo "Nothing to clean."
+elif [ "$DRY_RUN" = false ]; then
+    echo "Done. Restart WezTerm to start fresh."
+fi
