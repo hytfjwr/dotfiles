@@ -34,5 +34,9 @@
     "greptile@claude-plugins-official": true
   },
   "language": "思考・調査するときは英語、ユーザーと対話するとき日本語",
-  "skipDangerousModePermissionPrompt": true
+  "skipDangerousModePermissionPrompt": true,
+  "teammateMode": "tmux",
+  "experimentalFeatures": {
+    "agentTeams": true
+  }
 }
