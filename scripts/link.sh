@@ -66,6 +66,13 @@ ln -sfn "$DOTFILES_DIR/claude/skills" "$HOME/.claude/skills"
 info "Linking Claude Code rules"
 ln -sfn "$DOTFILES_DIR/claude/rules" "$HOME/.claude/rules"
 
+if [ -f "$DOTFILES_DIR/tools/wezterm-tmux-shim/target/release/wezterm-tmux-shim" ]; then
+    info "Linking wezterm-tmux-shim as tmux"
+    ln -sfn "$DOTFILES_DIR/tools/wezterm-tmux-shim/target/release/wezterm-tmux-shim" "$HOME/.local/bin/tmux"
+else
+    warn "wezterm-tmux-shim not built, skipping (run: make tmux-shim)"
+fi
+
 if [ -f "$DOTFILES_DIR/claude/statusline/target/release/claude-statusline" ]; then
     info "Linking claude-statusline binary"
     ln -sfn "$DOTFILES_DIR/claude/statusline/target/release/claude-statusline" "$HOME/.local/bin/claude-statusline"

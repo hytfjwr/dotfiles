@@ -72,7 +72,7 @@ alias cw="bunx @hytfjwr/claude-worktree"
 # bat - cat with syntax highlighting
 alias cat="bat"
 
-# yazi 
+# yazi
 function y() {
 	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
 	command yazi "$@" --cwd-file="$tmp"
@@ -80,3 +80,12 @@ function y() {
 	[ "$cwd" != "$PWD" ] && [ -d "$cwd" ] && builtin cd -- "$cwd"
 	rm -f -- "$tmp"
 }
+
+# WezTerm tmux shim for Claude Code Agent Team
+# Must be at the end of .zshrc to ensure ~/.local/bin/tmux takes priority
+if [[ -n "${WEZTERM_PANE:-}" ]]; then
+  if [[ -z "${TMUX:-}" ]]; then
+    export TMUX="wezterm-shim/${WEZTERM_PANE}/0"
+  fi
+  export PATH="$HOME/.local/bin:$PATH"
+fi
