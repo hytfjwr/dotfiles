@@ -36,7 +36,7 @@
   "language": "思考・調査するときは英語、ユーザーと対話するとき日本語",
   "skipDangerousModePermissionPrompt": true,
   "teammateMode": "tmux",
-  "experimentalFeatures": {
-    "agentTeams": true
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   }
 }
