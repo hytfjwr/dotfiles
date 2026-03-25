@@ -7,6 +7,7 @@ use std::process::{Command, ExitCode};
 // ── WezTerm CLI JSON structures ──────────────────────────────────────
 
 #[derive(Deserialize)]
+#[allow(dead_code)]
 struct WezPane {
     pane_id: u64,
     tab_id: u64,
@@ -63,11 +64,34 @@ fn current_pane_id() -> Result<u64, String> {
         .map_err(|_| "WEZTERM_PANE is not a valid integer".to_string())
 }
 
+fn parse_target_pane(target: &str) -> Result<u64, String> {
+    // Handle various tmux target formats:
+    //   %N          → direct pane id
+    //   N           → direct pane id
+    //   session:window.pane → extract pane part after last dot
+    //   session:window      → not a pane ref, fall back to current pane
+    if target.starts_with('%') {
+        return strip_pane_prefix(target)
+            .parse::<u64>()
+            .map_err(|_| format!("invalid pane id: {}", target));
+    }
+    if let Ok(id) = target.parse::<u64>() {
+        return Ok(id);
+    }
+    // session:window.pane format
+    if let Some(dot_pos) = target.rfind('.') {
+        let pane_part = &target[dot_pos + 1..];
+        return strip_pane_prefix(pane_part)
+            .parse::<u64>()
+            .map_err(|_| format!("invalid pane id: {}", target));
+    }
+    // session:window or session name — fall back to current pane
+    current_pane_id()
+}
+
 fn resolve_target_pane(args: &[String]) -> Result<u64, String> {
     if let Some(target) = get_flag_value(args, "-t") {
-        strip_pane_prefix(&target)
-            .parse::<u64>()
-            .map_err(|_| format!("invalid pane id: {}", target))
+        parse_target_pane(&target)
     } else {
         current_pane_id()
     }
@@ -122,14 +146,10 @@ fn append_trailing<'a>(wez_args: &mut Vec<&'a str>, trailing: &'a [String]) {
 }
 
 /// Print pane id in tmux format if -P flag is present.
+/// Always uses %N format (like tmux) regardless of -F value.
 fn print_pane_id_if_requested(args: &[String], new_pane: &str) {
     if has_flag(args, "-P") {
-        let id = new_pane.trim();
-        if has_flag(args, "-F") {
-            println!("%{}", id);
-        } else {
-            println!("{}", id);
-        }
+        println!("%{}", new_pane.trim());
     }
 }
 
@@ -178,7 +198,7 @@ fn cmd_split_window(args: &[String]) -> Result<(), String> {
     let size_str;
     if let Some(size) = get_flag_value(args, "-l") {
         if let Some(pct) = size.strip_suffix('%') {
-            size_str = format!("{}%", pct);
+            size_str = pct.to_string();
             wez_args.push("--percent");
             wez_args.push(&size_str);
         } else if let Ok(cells) = size.parse::<u32>() {
@@ -197,21 +217,27 @@ fn cmd_split_window(args: &[String]) -> Result<(), String> {
 }
 
 fn cmd_new_window(args: &[String]) -> Result<(), String> {
+    // Create a split pane as the "swarm-view" container.
+    // Claude Code will either use this pane directly (1 agent) or split it
+    // further (multiple agents). list-panes excludes WEZTERM_PANE so the
+    // main pane is never used as an agent pane.
+    let pane_id = current_pane_id()?;
+    let pane_str = pane_id.to_string();
     let name = get_flag_value(args, "-n").unwrap_or_default();
 
     let trailing = get_trailing_command(args);
-    let mut wez_args: Vec<&str> = vec!["spawn"];
+    let mut wez_args: Vec<&str> = vec!["split-pane", "--pane-id", &pane_str, "--bottom"];
     append_trailing(&mut wez_args, &trailing);
 
     let new_pane = wezterm_cli(&wez_args)?;
 
     if !name.is_empty() {
-        if let Ok(pane_id) = new_pane.trim().parse::<u64>() {
+        if let Ok(id) = new_pane.trim().parse::<u64>() {
             let _ = wezterm_cli(&[
                 "set-tab-title",
                 &name,
                 "--pane-id",
-                &pane_id.to_string(),
+                &id.to_string(),
             ]);
         }
     }
@@ -221,16 +247,32 @@ fn cmd_new_window(args: &[String]) -> Result<(), String> {
 }
 
 fn cmd_list_panes(args: &[String]) -> Result<(), String> {
+    let target_str = get_flag_value(args, "-t");
     let pane_id = resolve_target_pane(args)?;
     let panes = get_panes_in_tab(pane_id)?;
+    let format_str = get_flag_value(args, "-F");
+
+    // When target is a session:window reference (e.g. "claude-swarm:swarm-view"),
+    // exclude the main pane (WEZTERM_PANE) so Claude Code only sees agent panes.
+    let exclude_main = target_str
+        .as_deref()
+        .map_or(false, |t| t.contains(':') && !t.starts_with('%'));
+    let main_pane = if exclude_main {
+        current_pane_id().ok()
+    } else {
+        None
+    };
 
     for pane in &panes {
-        let active = if pane.is_active.unwrap_or(false) {
-            "(active)"
+        if main_pane.map_or(false, |mp| pane.pane_id == mp) {
+            continue;
+        }
+        if let Some(ref fmt) = format_str {
+            let line = fmt.replace("#{pane_id}", &tmux_pane_id(pane.pane_id));
+            println!("{}", line);
         } else {
-            ""
-        };
-        println!("%{}: {}", pane.pane_id, active);
+            println!("%{}", pane.pane_id);
+        }
     }
 
     Ok(())
@@ -238,7 +280,18 @@ fn cmd_list_panes(args: &[String]) -> Result<(), String> {
 
 fn cmd_send_keys(args: &[String]) -> Result<(), String> {
     let pane_id = resolve_target_pane(args)?;
-    let keys = get_trailing_command(args);
+    let mut keys: Vec<String> = Vec::new();
+
+    // Collect non-flag args as keys: -t is handled by resolve_target_pane, -l is boolean
+    let mut iter = args.iter();
+    while let Some(arg) = iter.next() {
+        match arg.as_str() {
+            "-t" => { let _ = iter.next(); }
+            "-l" => {}
+            other => keys.push(other.to_string()),
+        }
+    }
+
     if keys.is_empty() {
         return Ok(());
     }
@@ -286,16 +339,30 @@ fn cmd_send_keys(args: &[String]) -> Result<(), String> {
 
 fn cmd_display_message(args: &[String]) -> Result<(), String> {
     let pane_id = resolve_target_pane(args)?;
-    // tmux: -p prints to stdout, format string is a positional arg
-    let format_str = get_flag_value(args, "-p")
-        .or_else(|| {
-            if has_flag(args, "-p") {
-                get_trailing_command(args).into_iter().next()
-            } else {
-                None
+
+    // Collect format string from -F value or positional arg (-p and -t are handled elsewhere)
+    let mut format_str = String::new();
+    let mut iter = args.iter();
+    while let Some(arg) = iter.next() {
+        match arg.as_str() {
+            "-p" => {}
+            "-t" => { let _ = iter.next(); }
+            "-F" => {
+                if let Some(v) = iter.next() {
+                    format_str = v.clone();
+                }
             }
-        })
-        .unwrap_or_default();
+            other => {
+                if format_str.is_empty() {
+                    format_str = other.to_string();
+                }
+            }
+        }
+    }
+
+    if format_str.is_empty() {
+        return Ok(());
+    }
 
     let panes = get_pane_list()?;
     let pane = panes
@@ -305,7 +372,8 @@ fn cmd_display_message(args: &[String]) -> Result<(), String> {
 
     let mut result = format_str;
     result = result.replace("#{pane_id}", &tmux_pane_id(pane.pane_id));
-    result = result.replace("#{window_id}", &format!("@{}", pane.window_id));
+    // tmux window ≒ WezTerm tab
+    result = result.replace("#{window_id}", &format!("@{}", pane.tab_id));
     result = result.replace(
         "#{session_name}",
         pane.workspace.as_deref().unwrap_or("default"),
@@ -321,20 +389,7 @@ fn cmd_display_message(args: &[String]) -> Result<(), String> {
             .unwrap_or_default(),
     );
 
-    if result.contains("#{window_index}") {
-        let mut tab_ids: Vec<u64> = panes
-            .iter()
-            .filter(|p| p.window_id == pane.window_id)
-            .map(|p| p.tab_id)
-            .collect();
-        tab_ids.sort();
-        tab_ids.dedup();
-        let window_index = tab_ids
-            .iter()
-            .position(|&t| t == pane.tab_id)
-            .unwrap_or(0);
-        result = result.replace("#{window_index}", &window_index.to_string());
-    }
+    result = result.replace("#{window_index}", &pane.tab_id.to_string());
 
     println!("{}", result);
     Ok(())
@@ -342,6 +397,7 @@ fn cmd_display_message(args: &[String]) -> Result<(), String> {
 
 fn cmd_capture_pane(args: &[String]) -> Result<(), String> {
     let pane_id = resolve_target_pane(args)?;
+    let print_mode = has_flag(args, "-p");
     let pane_str = pane_id.to_string();
     let mut wez_args = vec!["get-text", "--pane-id", &pane_str];
 
@@ -352,8 +408,10 @@ fn cmd_capture_pane(args: &[String]) -> Result<(), String> {
         wez_args.push(&start_line);
     }
 
-    let text = wezterm_cli(&wez_args)?;
-    println!("{}", text);
+    if print_mode {
+        let text = wezterm_cli(&wez_args)?;
+        println!("{}", text);
+    }
     Ok(())
 }
 
@@ -377,8 +435,38 @@ fn cmd_kill_session(args: &[String]) -> Result<(), String> {
 }
 
 fn cmd_select_pane(args: &[String]) -> Result<(), String> {
+    // -P (style) and -T (title) take values that we ignore but must consume
     let pane_id = resolve_target_pane(args)?;
     wezterm_cli(&["activate-pane", "--pane-id", &pane_id.to_string()])?;
+    Ok(())
+}
+
+fn cmd_list_windows(args: &[String]) -> Result<(), String> {
+    // Return tab names for the current window, formatted per -F if given
+    let pane_id = current_pane_id()?;
+    let panes = get_pane_list()?;
+    let current_window_id = panes
+        .iter()
+        .find(|p| p.pane_id == pane_id)
+        .map(|p| p.window_id);
+
+    let format_str = get_flag_value(args, "-F").unwrap_or_default();
+
+    // Collect unique tabs in this window
+    let mut seen_tabs = std::collections::HashSet::new();
+    for pane in &panes {
+        if current_window_id.map_or(true, |wid| pane.window_id == wid)
+            && seen_tabs.insert(pane.tab_id)
+        {
+            if format_str.contains("#{window_name}") {
+                // WezTerm tabs don't have persistent names; use tab_id
+                let line = format_str.replace("#{window_name}", &format!("tab-{}", pane.tab_id));
+                println!("{}", line);
+            } else {
+                println!("tab-{}", pane.tab_id);
+            }
+        }
+    }
     Ok(())
 }
 
@@ -390,7 +478,7 @@ fn cmd_list_sessions() -> Result<(), String> {
         ws_tabs.entry(ws).or_default().insert(pane.tab_id);
     }
     let mut workspaces: Vec<_> = ws_tabs.into_iter().collect();
-    workspaces.sort_by_key(|(name, _)| name.to_string());
+    workspaces.sort_by_key(|(name, _)| *name);
     for (ws, tabs) in &workspaces {
         println!("{}: {} windows", ws, tabs.len());
     }
@@ -426,28 +514,59 @@ fn passthrough_to_real_tmux() -> ExitCode {
 
 // ── Main ─────────────────────────────────────────────────────────────
 
+fn log_debug(msg: &str) {
+    if let Ok(path) = env::var("WEZTERM_TMUX_SHIM_LOG") {
+        use std::fs::OpenOptions;
+        if let Ok(mut f) = OpenOptions::new().create(true).append(true).open(&path) {
+            let _ = writeln!(f, "{}", msg);
+        }
+    }
+}
+
 fn main() -> ExitCode {
     if env::var("WEZTERM_PANE").is_err() {
         return passthrough_to_real_tmux();
     }
 
-    let args: Vec<String> = env::args().skip(1).collect();
+    let all_args: Vec<String> = env::args().skip(1).collect();
+    log_debug(&format!("called: tmux {}", all_args.join(" ")));
 
-    if args.is_empty() {
+    if all_args.is_empty() {
         return ExitCode::SUCCESS;
     }
 
-    if args.iter().any(|a| a == "-V") {
+    if all_args.iter().any(|a| a == "-V") {
         println!("tmux 3.5a");
+        return ExitCode::SUCCESS;
+    }
+
+    // Skip pre-subcommand flags: -L <socket>, -S <socket-path>, -f <config>
+    let mut i = 0;
+    while i < all_args.len() {
+        match all_args[i].as_str() {
+            "-L" | "-S" | "-f" => {
+                i += 2; // skip flag and its value
+            }
+            _ => break,
+        }
+    }
+
+    let args = &all_args[i..];
+    if args.is_empty() {
         return ExitCode::SUCCESS;
     }
 
     let sub_args = &args[1..];
 
     let result = match args[0].as_str() {
-        "split-window" => cmd_split_window(sub_args),
+        "split-window" => {
+            let r = cmd_split_window(sub_args);
+            log_debug(&format!("split-window result: {:?}", r.as_ref().map(|_| "ok")));
+            r
+        }
         "new-window" | "new-session" => cmd_new_window(sub_args),
         "list-panes" => cmd_list_panes(sub_args),
+        "list-windows" => cmd_list_windows(sub_args),
         "list-sessions" | "ls" => cmd_list_sessions(),
         "send-keys" => cmd_send_keys(sub_args),
         "display-message" => cmd_display_message(sub_args),
