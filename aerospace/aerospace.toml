@@ -216,12 +216,16 @@ run = 'move-node-to-workspace 9'
 if.app-id = 'com.tinyspeck.slackmacgap'
 run = 'move-node-to-workspace S'
 
-# Finder -> Workspace F
+# Claude -> Workspace C
 [[on-window-detected]]
-if.app-id = 'com.apple.finder'
-run = 'move-node-to-workspace F'
+if.app-id = 'com.anthropic.claudefordesktop'
+run = 'move-node-to-workspace C'
 
 # Spotify -> Workspace M (MacBook built-in display)
 [[on-window-detected]]
 if.app-id = 'com.spotify.client'
 run = 'move-node-to-workspace M'
+
+# Catch-all: 上記のどのルールにもマッチしないアプリは Workspace F へ
+[[on-window-detected]]
+run = 'move-node-to-workspace F'

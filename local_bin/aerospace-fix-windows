@@ -55,8 +55,8 @@ get_target_workspace() {
         com.usebruno.app)          echo "9" ;;
         # Slack -> Workspace S
         com.tinyspeck.slackmacgap) echo "S" ;;
-        # Finder -> Workspace F
-        com.apple.finder)          echo "F" ;;
+        # Claude -> Workspace C
+        com.anthropic.claudefordesktop) echo "C" ;;
         # Spotify -> Workspace M
         com.spotify.client)        echo "M" ;;
         # マッピングなし
