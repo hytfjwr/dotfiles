@@ -162,7 +162,11 @@ function M.load(window, pane)
 					resurrect.window_state.restore_window(mux_win, state, {
 						close_open_tabs = true,
 						relative = true,
-						restore_text = false,
+						on_pane_restore = function(pane_tree)
+							if pane_tree.alt_screen_active and pane_tree.process then
+								pane_tree.pane:send_text(wezterm.shell_join_args(pane_tree.process.argv) .. "\r\n")
+							end
+						end,
 					})
 				end
 
