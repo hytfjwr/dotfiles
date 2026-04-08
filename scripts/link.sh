@@ -53,6 +53,7 @@ ln -sfn "$DOTFILES_DIR/local_bin/aerospace-fix-windows" "$HOME/.local/bin/aerosp
 ln -sfn "$DOTFILES_DIR/local_bin/nvim-clean" "$HOME/.local/bin/nvim-clean"
 ln -sfn "$DOTFILES_DIR/local_bin/awake" "$HOME/.local/bin/awake"
 ln -sfn "$DOTFILES_DIR/local_bin/wezterm-clean" "$HOME/.local/bin/wezterm-clean"
+ln -sfn "$DOTFILES_DIR/local_bin/claude-session-bridge" "$HOME/.local/bin/claude-session-bridge"
 
 info "Creating ~/.claude directory"
 mkdir -p "$HOME/.claude"
