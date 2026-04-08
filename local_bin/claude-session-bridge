@@ -1,0 +1,37 @@
+#!/bin/bash
+# claude-session-bridge - Activity enrichment for Claude agent monitor
+#
+# Called by Claude Code PreToolUse hook (async) to record what the agent
+# is currently doing. The core session detection is handled by WezTerm's
+# agent.lua via process scanning; this script adds optional activity detail.
+
+set -euo pipefail
+
+PANE_ID="${WEZTERM_PANE:-}"
+[[ -z "$PANE_ID" ]] && exit 0
+
+[[ -d /tmp/claude_sessions ]] || mkdir -p /tmp/claude_sessions
+
+# Single jq call: read hook stdin, extract fields, compute activity, write result
+jq '
+  .tool_name as $tool |
+  ((.tool_input.file_path // "") | split("/") | .[-1]) as $file |
+  ((.tool_input.command // "")[:40]) as $cmd |
+  ((.tool_input.pattern // "")[:20]) as $pat |
+  ((.tool_input.description // "")[:30]) as $desc |
+  {
+    activity: (
+      if $tool == "Read" then "Reading \($file)"
+      elif $tool == "Edit" then "Editing \($file)"
+      elif $tool == "Write" then "Writing \($file)"
+      elif $tool == "Bash" then "$ \($cmd)"
+      elif $tool == "Grep" then "Grep: \($pat)"
+      elif $tool == "Glob" then "Find: \($pat)"
+      elif $tool == "Agent" then "Agent: \($desc)"
+      elif ($tool == "WebSearch" or $tool == "WebFetch") then "Web browsing"
+      else $tool
+      end
+    ),
+    updated_at: (now | floor)
+  }
+' > "/tmp/claude_sessions/${PANE_ID}.json"

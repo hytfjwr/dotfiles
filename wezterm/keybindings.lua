@@ -3,6 +3,7 @@ local wezterm = require("wezterm")
 
 local resurrect = wezterm.plugin.require("https://github.com/MLFlexer/resurrect.wezterm")
 local presets = require("presets")
+local claude_sessions = require("claude_sessions")
 
 local M = {}
 
@@ -189,6 +190,14 @@ M.keys = {
 			end
 		end),
 	},
+	-- Claudeセッションスイッチャー
+	{
+		key = "o",
+		mods = "CMD|SHIFT",
+		action = wezterm.action_callback(function(window, pane)
+			claude_sessions.show_selector(window, pane)
+		end),
+	},
 	-- wezterm resurrect 手動保存
 	{
 		key = "R",
@@ -199,19 +208,6 @@ M.keys = {
 			resurrect.state_manager.write_current_state(workspace, "workspace")
 			window:toast_notification("WezTerm", "Workspace saved: " .. workspace)
 		end),
-	},
-	-- タブ名を変更
-	{
-		key = "o",
-		mods = "CMD|SHIFT",
-		action = wezterm.action.PromptInputLine({
-			description = "タブ名を入力してください:",
-			action = wezterm.action_callback(function(window, pane, line)
-				if line then
-					window:active_tab():set_title(line)
-				end
-			end),
-		}),
 	},
 	-- オーバーレイ（Terminal / Neovim / Lazygit）
 	{
