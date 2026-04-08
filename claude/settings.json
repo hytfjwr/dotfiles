@@ -13,6 +13,18 @@
     "defaultMode": "default"
   },
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.local/bin/claude-session-bridge",
+            "async": true
+          }
+        ]
+      }
+    ],
     "Notification": [
       {
         "matcher": "",
@@ -45,6 +57,5 @@
   },
   "language": "思考・調査するときは英語、ユーザーと対話するとき日本語",
   "skipDangerousModePermissionPrompt": true,
-  "teammateMode": "tmux",
-  "effortLevel": "max"
+  "teammateMode": "tmux"
 }
