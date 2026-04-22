@@ -157,9 +157,15 @@ fn format_remaining(resets_at: f64) -> Option<String> {
         return None;
     }
     let total_secs = remaining as u64;
-    let hours = total_secs / 3600;
-    let mins = (total_secs % 3600) / 60;
-    Some(format!("({}h{}m)", hours, mins))
+    if total_secs >= 86_400 {
+        let days = total_secs / 86_400;
+        let hours = (total_secs % 86_400) / 3600;
+        Some(format!("({}d{}h)", days, hours))
+    } else {
+        let hours = total_secs / 3600;
+        let mins = (total_secs % 3600) / 60;
+        Some(format!("({}h{}m)", hours, mins))
+    }
 }
 
 /// Get current git branch by reading .git/HEAD directly, with command fallback
@@ -308,7 +314,7 @@ fn main() {
             }
         }
         if let Some(ref seven) = rl.seven_day {
-            if let Some(s) = build_rate_limit_section("7d", &THEME_7D, seven, false) {
+            if let Some(s) = build_rate_limit_section("7d", &THEME_7D, seven, true) {
                 line2.push(s);
             }
         }
