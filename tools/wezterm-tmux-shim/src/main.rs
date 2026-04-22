@@ -434,6 +434,26 @@ fn cmd_kill_session(args: &[String]) -> Result<(), String> {
     Ok(())
 }
 
+fn cmd_show(args: &[String]) -> Result<(), String> {
+    // image.nvim etc. run: tmux show -Apv allow-passthrough
+    // WezTerm has no tmux layer so passthrough is effectively always enabled.
+    let value_only = has_flag(args, "-v");
+    let positional: Vec<&str> = args
+        .iter()
+        .filter(|a| !a.starts_with('-'))
+        .map(|a| a.as_str())
+        .collect();
+
+    if positional.iter().any(|a| *a == "allow-passthrough") {
+        if value_only {
+            println!("on");
+        } else {
+            println!("allow-passthrough on");
+        }
+    }
+    Ok(())
+}
+
 fn cmd_select_pane(args: &[String]) -> Result<(), String> {
     // -P (style) and -T (title) take values that we ignore but must consume
     let pane_id = resolve_target_pane(args)?;
@@ -575,6 +595,7 @@ fn main() -> ExitCode {
         "kill-session" => cmd_kill_session(sub_args),
         "select-pane" => cmd_select_pane(sub_args),
         "has-session" => cmd_has_session(sub_args),
+        "show" => cmd_show(sub_args),
         // No-ops: WezTerm handles these automatically or they don't apply
         "select-layout" | "show-options" | "switch-client" | "resize-pane" | "set-option"
         | "set-window-option" | "bind-key" | "unbind-key" => Ok(()),
