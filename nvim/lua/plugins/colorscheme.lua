@@ -76,6 +76,9 @@ return {
               clear(name)
             end
           end
+          -- 透過背景上で埋もれないよう Comment の前景色を持ち上げる
+          local comment_hl = vim.api.nvim_get_hl(0, { name = "Comment", link = false })
+          vim.api.nvim_set_hl(0, "Comment", vim.tbl_extend("force", comment_hl, { fg = "#8A9199", bg = "NONE" }))
         end
         clear_bg()
         vim.api.nvim_create_autocmd("ColorScheme", {
