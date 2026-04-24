@@ -50,16 +50,31 @@ return {
           "TelescopePreviewNormal",
           "TelescopePreviewBorder",
           "TelescopeTitle",
-          "BufferLineFill",
-          "BufferLineBackground",
           "WhichKeyFloat",
           "WhichKeyBorder",
           "NotifyBackground",
         }
+        -- BufferLine と lualine はハイライトグループが動的生成されるためパターンマッチで一括対応する
+        local prefix_patterns = {
+          "BufferLine",
+          "lualine_b_",
+          "lualine_c_",
+          "lualine_x_",
+          "lualine_y_",
+          "lualine_z_",
+        }
         local function clear_bg()
+          local function clear(name)
+            local hl = vim.api.nvim_get_hl(0, { name = name, link = false })
+            vim.api.nvim_set_hl(0, name, vim.tbl_extend("force", hl, { bg = "NONE", ctermbg = "NONE" }))
+          end
           for _, g in ipairs(groups) do
-            local hl = vim.api.nvim_get_hl(0, { name = g, link = false })
-            vim.api.nvim_set_hl(0, g, vim.tbl_extend("force", hl, { bg = "NONE", ctermbg = "NONE" }))
+            clear(g)
+          end
+          for _, prefix in ipairs(prefix_patterns) do
+            for _, name in ipairs(vim.fn.getcompletion(prefix, "highlight")) do
+              clear(name)
+            end
           end
         end
         clear_bg()
