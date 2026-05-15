@@ -58,10 +58,8 @@ alias nv='neovide'
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 
-# zoxide - smarter cd command
-eval "$(zoxide init zsh)"
-alias cd="z"
-alias cdi="zi"
+# devcontainer CLI
+export PATH="$HOME/.devcontainers/bin:$PATH"
 
 # lazygit
 alias lg="lazygit"
@@ -89,3 +87,27 @@ if [[ -n "${WEZTERM_PANE:-}" ]]; then
   fi
   export PATH="$HOME/.local/bin:$PATH"
 fi
+# Added by dbt Fusion extension (ensure dbt binary dir on PATH)
+if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
+  export PATH="$HOME/.local/bin:$PATH"
+fi
+# Added by dbt Fusion extension
+alias dbtf="$HOME/.local/bin/dbt"
+
+# Added by dbt installer
+export PATH="$PATH:$HOME/.local/bin"
+# Added by dbt Fusion extension (ensure dbt binary dir on PATH)
+if [[ ":$PATH:" != *":/Users/hayato.fujiwara/.local/bin:"* ]]; then
+  export PATH=/Users/hayato.fujiwara/.local/bin:"$PATH"
+fi
+
+# Added by dbt installer
+export PATH="$PATH:/Users/hayato.fujiwara/.local/bin"
+
+# dbt aliases
+alias dbtf=/Users/hayato.fujiwara/.local/bin/dbt
+
+# zoxide - smarter cd command (must be at the end after all PATH modifications)
+eval "$(zoxide init zsh)"
+alias cd="z"
+alias cdi="zi"
