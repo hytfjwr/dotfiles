@@ -5,6 +5,8 @@ tap "rbenv/tap"
 tap "nikitabobko/tap"
 tap "FelixKratz/formulae"
 tap "daipeihust/tap"
+tap "hashicorp/tap"
+tap "k1low/tap"
 
 # CLI
 brew "git"
@@ -40,6 +42,11 @@ brew "sevenzip"
 brew "poppler"
 brew "resvg"
 brew "imagemagick-full"
+brew "hashicorp/tap/terraform"
+brew "hashicorp/tap/terraform-ls"
+brew "k1low/tap/mo"
+brew "fswatch"
+brew "lefthook"
 
 # Dependencies for mise builds
 brew "rbenv/tap/openssl@1.1"
