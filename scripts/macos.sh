@@ -46,7 +46,4 @@ killall Dock
 info "Restarting SystemUIServer to apply MenuBar settings..."
 killall SystemUIServer || true
 
-info "Starting sketchybar service"
-brew services start sketchybar
-
 section "macOS settings applied"
