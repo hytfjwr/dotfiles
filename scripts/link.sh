@@ -31,11 +31,14 @@ ln -sfn "$DOTFILES_DIR/wezterm" "$HOME/.config/wezterm"
 info "Linking ghostty"
 ln -sfn "$DOTFILES_DIR/ghostty" "$HOME/.config/ghostty"
 
-info "Linking sketchybar"
-ln -sfn "$DOTFILES_DIR/sketchybar" "$HOME/.config/sketchybar"
-
 info "Linking gh"
 ln -sfn "$DOTFILES_DIR/gh" "$HOME/.config/gh"
+
+info "Creating ~/.config/statusbar directory"
+mkdir -p "$HOME/.config/statusbar"
+
+info "Linking statusbar config"
+ln -sfn "$DOTFILES_DIR/statusbar/config.yml" "$HOME/.config/statusbar/config.yml"
 
 info "Creating ~/.config/mise directory"
 mkdir -p "$HOME/.config/mise"

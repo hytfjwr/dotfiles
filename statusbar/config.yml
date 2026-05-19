@@ -1,0 +1,175 @@
+global:
+  bar:
+    height: 40
+    cornerRadius: 35
+    margin: 8
+    yOffset: 5
+    widgetSpacing: 4
+    widgetPaddingH: 12
+  appearance:
+    accent: '#007AFF'
+    textPrimaryOpacity: 1
+    textSecondaryOpacity: 0.55
+    textTertiaryOpacity: 0.3
+    green: '#34C759'
+    yellow: '#FF9F0A'
+    red: '#FF3B30'
+    cyan: '#64D2FF'
+    purple: '#BF5AF2'
+    barTint: '#00FFFB'
+    barTintOpacity: 0
+    shadowEnabled: true
+    popupCornerRadius: 24
+    popupPadding: 18
+  typography:
+    iconFontSize: 13
+    labelFontSize: 12
+    smallFontSize: 10
+    monoFontSize: 12
+  graphs:
+    width: 38
+    height: 30
+    dataPoints: 65
+    cpuColor: '#00FCFF'
+    memoryColor: '#34C759'
+  behavior:
+    autoHide: true
+    autoHideDwellTime: 0.3
+    autoHideFadeDuration: 0.2
+    launchAtLogin: true
+    hideInFullscreen: true
+  notifications:
+    batteryLow: true
+    batteryThreshold: 20
+    cpuHigh: true
+    cpuThreshold: 90
+    cpuSustainedDuration: 5
+    memoryHigh: true
+    memoryThreshold: 80
+    memorySustainedDuration: 5
+    bluetoothBatteryLow: false
+    bluetoothBatteryThreshold: 20
+widgets:
+- id: apple-menu
+  section: left
+  sortIndex: 0
+  visible: true
+- id: chevron
+  section: left
+  sortIndex: 2
+  visible: true
+- id: front-app
+  section: left
+  sortIndex: 3
+  visible: true
+- id: focus-timer
+  section: center
+  sortIndex: 0
+  visible: true
+- id: mic-camera
+  section: right
+  sortIndex: 1
+  visible: true
+- id: network
+  section: right
+  sortIndex: 2
+  visible: true
+- id: memory-graph
+  section: right
+  sortIndex: 3
+  visible: true
+- id: cpu-graph
+  section: right
+  sortIndex: 4
+  visible: true
+- id: disk-usage
+  section: right
+  sortIndex: 5
+  visible: false
+- id: battery
+  section: right
+  sortIndex: 6
+  visible: true
+- id: volume
+  section: right
+  sortIndex: 8
+  visible: true
+- id: input-source
+  section: right
+  sortIndex: 11
+  visible: true
+- id: date
+  section: right
+  sortIndex: 12
+  visible: true
+- id: time
+  section: right
+  sortIndex: 13
+  visible: true
+- id: bluetooth
+  section: right
+  sortIndex: 9
+  visible: true
+- id: vpn
+  section: right
+  sortIndex: 10
+  visible: true
+- id: docker
+  section: right
+  sortIndex: 7
+  visible: true
+- id: workspace
+  section: left
+  sortIndex: 1
+  visible: true
+- id: claude-code-usage
+  section: right
+  sortIndex: 0
+  visible: true
+- id: quick-actions
+  section: left
+  sortIndex: 4
+  visible: false
+- id: spotify
+  section: center
+  sortIndex: 1
+  visible: true
+widgetSettings:
+  time:
+    format: HH:mm
+  cpuGraph:
+    updateInterval: 1
+    displayMode: graphOnly
+    thresholds: 60:#FF9F0A,85:#FF3B30
+  quick-actions:
+    configPath: ~/.config/statusbar/plugins/quickactions.statusplugin/config.json
+  claude-code:
+    updateInterval: 10
+    dataFilePath: ~/.claude/rate_limits.json
+    toastOnWarning: true
+    criticalThreshold: 90
+    warningColorHex: FFD60A
+    barDisplayMode: both
+    staleThreshold: 120
+    criticalColorHex: FF453A
+    warningThreshold: 70
+    toastOnCritical: true
+  workspace:
+    activeBackgroundColor: '#FFFFFF'
+    showEmptySpaces: false
+    appIconSize: 18
+    showAppIcons: true
+  date:
+    notifyNextEvent: true
+    format: EEE dd. MMM
+    notifyMinutesBefore: 1,2,3,4,5,10
+    showNextEventInPopup: true
+    showNextEventOnBar: false
+  memoryGraph:
+    displayMode: graphOnly
+    thresholds: 70:#FF9F0A,90:#FF3B30
+    updateInterval: 1
+  battery:
+    showPercentage: true
+  network:
+    updateInterval: 2
