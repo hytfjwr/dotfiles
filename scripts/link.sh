@@ -39,6 +39,7 @@ mkdir -p "$HOME/.config/statusbar"
 
 info "Linking statusbar config"
 ln -sfn "$DOTFILES_DIR/statusbar/config.yml" "$HOME/.config/statusbar/config.yml"
+ln -sfn "$DOTFILES_DIR/statusbar/plugins-lock.yml" "$HOME/.config/statusbar/plugins-lock.yml"
 
 info "Creating ~/.config/mise directory"
 mkdir -p "$HOME/.config/mise"
@@ -71,39 +72,39 @@ info "Linking Claude Code rules"
 ln -sfn "$DOTFILES_DIR/claude/rules" "$HOME/.claude/rules"
 
 if [ -f "$DOTFILES_DIR/tools/wezterm-tmux-shim/target/release/wezterm-tmux-shim" ]; then
-    info "Linking wezterm-tmux-shim as tmux"
-    ln -sfn "$DOTFILES_DIR/tools/wezterm-tmux-shim/target/release/wezterm-tmux-shim" "$HOME/.local/bin/tmux"
+  info "Linking wezterm-tmux-shim as tmux"
+  ln -sfn "$DOTFILES_DIR/tools/wezterm-tmux-shim/target/release/wezterm-tmux-shim" "$HOME/.local/bin/tmux"
 else
-    warn "wezterm-tmux-shim not built, skipping (run: make tmux-shim)"
+  warn "wezterm-tmux-shim not built, skipping (run: make tmux-shim)"
 fi
 
 if [ -f "$DOTFILES_DIR/claude/statusline/target/release/claude-statusline" ]; then
-    info "Linking claude-statusline binary"
-    ln -sfn "$DOTFILES_DIR/claude/statusline/target/release/claude-statusline" "$HOME/.local/bin/claude-statusline"
+  info "Linking claude-statusline binary"
+  ln -sfn "$DOTFILES_DIR/claude/statusline/target/release/claude-statusline" "$HOME/.local/bin/claude-statusline"
 else
-    warn "claude-statusline not built, skipping (run: make statusline)"
+  warn "claude-statusline not built, skipping (run: make statusline)"
 fi
 
 # VSCode (macOS)
 VSCODE_DIR="$HOME/Library/Application Support/Code/User"
 if [ -d "$VSCODE_DIR" ]; then
-    info "Linking VSCode settings.json"
-    ln -sfn "$DOTFILES_DIR/vscode/settings.json" "$VSCODE_DIR/settings.json"
-    info "Linking VSCode keybindings.json"
-    ln -sfn "$DOTFILES_DIR/vscode/keybindings.json" "$VSCODE_DIR/keybindings.json"
+  info "Linking VSCode settings.json"
+  ln -sfn "$DOTFILES_DIR/vscode/settings.json" "$VSCODE_DIR/settings.json"
+  info "Linking VSCode keybindings.json"
+  ln -sfn "$DOTFILES_DIR/vscode/keybindings.json" "$VSCODE_DIR/keybindings.json"
 else
-    warn "VSCode not found, skipping"
+  warn "VSCode not found, skipping"
 fi
 
 # Cursor (macOS)
 CURSOR_DIR="$HOME/Library/Application Support/Cursor/User"
 if [ -d "$CURSOR_DIR" ]; then
-    info "Linking Cursor settings.json"
-    ln -sfn "$DOTFILES_DIR/vscode/settings.json" "$CURSOR_DIR/settings.json"
-    info "Linking Cursor keybindings.json"
-    ln -sfn "$DOTFILES_DIR/vscode/keybindings.json" "$CURSOR_DIR/keybindings.json"
+  info "Linking Cursor settings.json"
+  ln -sfn "$DOTFILES_DIR/vscode/settings.json" "$CURSOR_DIR/settings.json"
+  info "Linking Cursor keybindings.json"
+  ln -sfn "$DOTFILES_DIR/vscode/keybindings.json" "$CURSOR_DIR/keybindings.json"
 else
-    warn "Cursor not found, skipping"
+  warn "Cursor not found, skipping"
 fi
 
 section "Symlinks created"
