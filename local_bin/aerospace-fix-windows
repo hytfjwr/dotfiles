@@ -41,6 +41,8 @@ get_target_workspace() {
         com.github.wez.wezterm)    echo "1" ;;
         com.apple.Terminal)        echo "1" ;;
         com.neovide.neovide)       echo "1" ;;
+        com.mitchellh.ghostty)     echo "1" ;;
+        com.cmuxterm.app)          echo "1" ;;
         # Development Tools -> Workspace 2
         com.todesktop.230313mzl4w4u92) echo "2" ;;  # Cursor
         com.jetbrains.PhpStorm)    echo "2" ;;
