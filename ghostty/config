@@ -3,11 +3,15 @@ font-family = 0xProto
 font-family-bold = 0xProto
 font-family-italic = 0xProto
 font-family-bold-italic = 0xProto
-font-codepoint-map = U+3000-U+303F,U+3040-U+309F,U+30A0-U+30FF,U+4E00-U+9FFF,U+F900-U+FAFF,U+FF00-U+FFEF=Hiragino Sans
+font-codepoint-map = U+3000-U+303F,U+3040-U+309F,U+30A0-U+30FF,U+4E00-U+9FFF,U+F900-U+FAFF,U+FF00-U+FFEF=Hiragino Sans W6
 font-size = 16
 font-feature = -calt
 font-feature = -clig
 font-feature = -liga
+
+# 日本語フォントを太く見せる（macOS のサブピクセルレンダリング強化）
+font-thicken = true
+font-thicken-strength = 128
 
 # カラーテーマ
 theme = ayu
