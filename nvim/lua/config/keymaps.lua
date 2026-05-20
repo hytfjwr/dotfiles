@@ -33,7 +33,46 @@ vim.keymap.set("n", "<D-M-Right>", "<C-w>l", { desc = "Move to right pane" })
 vim.keymap.set("n", "<D-S-Left>", ":bprevious<CR>", { desc = "Previous buffer" })
 vim.keymap.set("n", "<D-S-Right>", ":bnext<CR>", { desc = "Next buffer" })
 
--- 選択行の参照をClaudeCode形式でコピーし、Claude Codeペインに送信: <leader>cl
+-- 選択行の参照をClaudeCode形式でコピーし、cmux/weztermのペインに送信: <leader>cl
+local function send_to_cmux(reference)
+  local json = vim.fn.system({ "cmux", "rpc", "pane.last", "{}" })
+  if vim.v.shell_error ~= 0 then
+    vim.notify("Copied (cmux: no last pane): " .. reference, vim.log.levels.WARN)
+    return
+  end
+  local ok, decoded = pcall(vim.json.decode, json)
+  if not ok or type(decoded) ~= "table" or not decoded.surface_ref then
+    vim.notify("Copied (cmux: malformed response): " .. reference, vim.log.levels.WARN)
+    return
+  end
+  local surface_ref = decoded.surface_ref
+  vim.fn.system({ "cmux", "send-panel", "--panel", surface_ref, " " .. reference .. " " })
+  if vim.v.shell_error ~= 0 then
+    vim.notify("Failed to send (cmux " .. surface_ref .. "): " .. reference, vim.log.levels.WARN)
+  else
+    vim.notify("Sent to " .. surface_ref .. ": " .. reference, vim.log.levels.INFO)
+  end
+end
+
+local function send_to_wezterm(reference)
+  local pane_id = ""
+  local f = io.open("/tmp/wezterm_last_active_pane", "r")
+  if f then
+    pane_id = f:read("*all"):gsub("%s+", "")
+    f:close()
+  end
+  if pane_id == "" then
+    vim.notify("Copied (no active pane): " .. reference, vim.log.levels.WARN)
+    return
+  end
+  vim.fn.system({ "wezterm", "cli", "send-text", "--pane-id", pane_id, " " .. reference .. " " })
+  if vim.v.shell_error ~= 0 then
+    vim.notify("Failed to send (pane may be closed): " .. reference, vim.log.levels.WARN)
+  else
+    vim.notify("Sent to pane " .. pane_id .. ": " .. reference, vim.log.levels.INFO)
+  end
+end
+
 vim.keymap.set("v", "<leader>cl", function()
   -- Gitルートを取得
   local git_root = vim.fn.system("git rev-parse --show-toplevel"):gsub("\n", "")
@@ -58,26 +97,15 @@ vim.keymap.set("v", "<leader>cl", function()
   -- 参照文字列を作成
   local reference = string.format("@%s#L%d-%d", relative_path, start_line, end_line)
 
-  -- クリップボードにコピー
+  -- クリップボードにコピー（送信失敗時のフォールバック）
   vim.fn.setreg("+", reference)
 
-  -- 最後にアクティブだった非nvimペインに送信
-  local pane_id_file = "/tmp/wezterm_last_active_pane"
-  local f = io.open(pane_id_file, "r")
-  if f then
-    local pane_id = f:read("*all"):gsub("%s+", "")
-    f:close()
-    if pane_id ~= "" then
-      vim.fn.system("wezterm cli send-text --pane-id " .. pane_id .. " " .. vim.fn.shellescape(" " .. reference .. " "))
-      if vim.v.shell_error ~= 0 then
-        vim.notify("Failed to send (pane may be closed): " .. reference, vim.log.levels.WARN)
-      else
-        vim.notify("Sent to pane " .. pane_id .. ": " .. reference, vim.log.levels.INFO)
-      end
-    else
-      vim.notify("Copied (no active pane): " .. reference, vim.log.levels.WARN)
-    end
+  -- ターミナル別に送信先を分岐（cmux優先）
+  if os.getenv("CMUX_WORKSPACE_ID") then
+    send_to_cmux(reference)
+  elseif os.getenv("WEZTERM_PANE") or vim.fn.filereadable("/tmp/wezterm_last_active_pane") == 1 then
+    send_to_wezterm(reference)
   else
-    vim.notify("Copied (no active pane): " .. reference, vim.log.levels.WARN)
+    vim.notify("Copied (no terminal integration): " .. reference, vim.log.levels.WARN)
   end
 end, { desc = "Send line reference to last active pane" })
