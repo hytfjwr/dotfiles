@@ -1,0 +1,37 @@
+lockfileVersion: 1
+plugins:
+- source: github:hytfjwr/statusbar-plugin-spotify
+  resolvedVersion: 1.3.0
+  pluginID: com.statusbar.spotify
+  bundleName: spotify
+  assetURL: https://github.com/hytfjwr/statusbar-plugin-spotify/releases/download/v1.3.0/spotify.statusplugin.zip
+  zipSHA256: 3018927b33dbb778d2aa8d47f7ffaf1ebb34982256b2113cae137c7519e64454
+  resolvedAt: 2026-05-19T05:56:14.221068025Z
+- source: github:hytfjwr/statusbar-plugin-claude
+  resolvedVersion: 1.2.0
+  pluginID: com.hytfjwr.claudecode
+  bundleName: claudecodeplugin
+  assetURL: https://github.com/hytfjwr/statusbar-plugin-claude/releases/download/v1.2.0/claudecodeplugin.statusplugin.zip
+  zipSHA256: 17a01b8fe15ca12111e842a5867c9d8e24fe3ed0382a7b3b61c98dcde1d87995
+  resolvedAt: 2026-05-19T05:56:51.965981007Z
+- source: github:hytfjwr/statusbar-plugin-aerospace
+  resolvedVersion: 2.0.0
+  pluginID: com.statusbar.aerospace
+  bundleName: aerospace
+  assetURL: https://github.com/hytfjwr/statusbar-plugin-aerospace/releases/download/v2.0.0/aerospace.statusplugin.zip
+  zipSHA256: 7a76410474152304c382f109230cb04117f556188ea0226b1d9f73f01279ca0f
+  resolvedAt: 2026-05-19T05:57:32.54548502Z
+- source: github:hytfjwr/statusbar-plugin-vpn
+  resolvedVersion: 1.0.1
+  pluginID: com.statusbar.vpn
+  bundleName: vpn
+  assetURL: https://github.com/hytfjwr/statusbar-plugin-vpn/releases/download/v1.0.1/vpn.statusplugin.zip
+  zipSHA256: 49b20955422f3218c833b0eea25f0d4cb0aa495ec80a3651a988c4af1b26f02f
+  resolvedAt: 2026-05-19T05:57:52.095805049Z
+- source: github:hytfjwr/statusbar-plugin-docker
+  resolvedVersion: 1.0.1
+  pluginID: com.statusbar.docker
+  bundleName: docker
+  assetURL: https://github.com/hytfjwr/statusbar-plugin-docker/releases/download/v1.0.1/docker.statusplugin.zip
+  zipSHA256: f7900fab90e140dfd88368aabd5e266bc27bc0a9cc1b8fc3767d6d5da9934dea
+  resolvedAt: 2026-05-19T05:58:09.099658966Z
