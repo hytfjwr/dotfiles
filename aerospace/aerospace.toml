@@ -176,9 +176,16 @@ run = 'move-node-to-workspace 1'
 if.app-id = 'com.mitchellh.ghostty'
 run = 'move-node-to-workspace 1'
 
+# cmux Settings ウィンドウは floating のまま（ワークスペース移動のみ）
 [[on-window-detected]]
 if.app-id = 'com.cmuxterm.app'
+if.window-title-regex-substring = 'Settings'
 run = 'move-node-to-workspace 1'
+
+# cmux メインウィンドウは tiling 化（ディスプレイ切替時のリサイズ対応のため）
+[[on-window-detected]]
+if.app-id = 'com.cmuxterm.app'
+run = ['layout tiling', 'move-node-to-workspace 1']
 
 # Development Tools -> Workspace 2
 [[on-window-detected]]
