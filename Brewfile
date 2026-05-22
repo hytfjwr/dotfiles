@@ -76,6 +76,7 @@ brew "oniguruma"
 # Apps
 cask "wezterm@nightly"
 cask "ghostty"
+cask "cmux"
 cask "neovide-app"
 cask "visual-studio-code"
 cask "cursor"
