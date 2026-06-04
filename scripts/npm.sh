@@ -12,4 +12,7 @@ npm install -g ccusage
 info "Installing pnpm..."
 npm install -g pnpm
 
+info "Installing codex..."
+npm install -g @openai/codex
+
 section "npm setup complete"
