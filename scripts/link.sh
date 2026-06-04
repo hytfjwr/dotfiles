@@ -59,6 +59,12 @@ ln -sfn "$DOTFILES_DIR/local_bin/awake" "$HOME/.local/bin/awake"
 ln -sfn "$DOTFILES_DIR/local_bin/wezterm-clean" "$HOME/.local/bin/wezterm-clean"
 ln -sfn "$DOTFILES_DIR/local_bin/claude-session-bridge" "$HOME/.local/bin/claude-session-bridge"
 
+info "Creating ~/.codex directory"
+mkdir -p "$HOME/.codex"
+
+info "Linking Codex config"
+ln -sfn "$DOTFILES_DIR/codex/config.toml" "$HOME/.codex/config.toml"
+
 info "Creating ~/.claude directory"
 mkdir -p "$HOME/.claude"
 
