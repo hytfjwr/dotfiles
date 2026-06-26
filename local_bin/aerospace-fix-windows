@@ -53,6 +53,7 @@ get_target_workspace() {
         # Database Tools -> Workspace 4
         com.sequel-ace.sequel-ace) echo "4" ;;  # Sequel Ace
         com.tinyapp.TablePlus)     echo "4" ;;  # TablePlus
+        org.jkiss.dbeaver.core.product) echo "4" ;;  # DBeaver
         # Bruno -> Workspace 9
         com.usebruno.app)          echo "9" ;;
         # Slack -> Workspace S
