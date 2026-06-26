@@ -218,6 +218,10 @@ run = 'move-node-to-workspace 4'
 if.app-id = 'com.tinyapp.TablePlus' # TablePlus
 run = 'move-node-to-workspace 4'
 
+[[on-window-detected]]
+if.app-id = 'org.jkiss.dbeaver.core.product' # DBeaver
+run = 'move-node-to-workspace 4'
+
 # Bruno -> Workspace 9 (MacBook built-in display)
 [[on-window-detected]]
 if.app-id = 'com.usebruno.app'
