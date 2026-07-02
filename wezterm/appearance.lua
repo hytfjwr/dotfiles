@@ -7,7 +7,10 @@ function M.apply(config)
 	-- フォント設定
 	config.font = wezterm.font_with_fallback({ "0xProto", "Hiragino Sans" })
 	config.harfbuzz_features = { "calt=0", "clig=0", "liga=0" }
-	config.text_background_opacity = 1.0
+	-- アプリが明示的に背景色を付けたセルの不透明度。
+	-- Neovim は背景色を持たせるため、この値で Neovim pane だけが暗く（少し透過を残して）描画される。
+	-- shell の空き領域はデフォルト背景なので window_background_opacity(0.45) 側が効き、透過は維持される。
+	config.text_background_opacity = 0.7
 	config.font_size = 16
 	config.cell_width = 1.0
 	config.line_height = 1.0
