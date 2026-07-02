@@ -107,6 +107,8 @@ export PATH="$PATH:/Users/hayato.fujiwara/.local/bin"
 # dbt aliases
 alias dbtf=/Users/hayato.fujiwara/.local/bin/dbt
 
+eval "$(tirith init --shell zsh)"
+
 # zoxide - smarter cd command (must be at the end after all PATH modifications)
 eval "$(zoxide init zsh)"
 alias cd="z"
