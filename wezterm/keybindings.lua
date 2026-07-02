@@ -174,6 +174,26 @@ M.keys = {
 		mods = "CMD",
 		action = wezterm.action.ToggleFullScreen,
 	},
+	-- Neovim pane 背景の不透明度トグル（0.7=少し透過 ⇔ 1.0=不透明）で見比べる。
+	-- 一時的な上書きなので再起動でベース値（appearance.lua）に戻る。
+	{
+		key = "b",
+		mods = "CMD|SHIFT",
+		action = wezterm.action_callback(function(window, _pane)
+			local overrides = window:get_config_overrides() or {}
+			local current = overrides.text_background_opacity or window:effective_config().text_background_opacity
+			if current and current < 1.0 then
+				overrides.text_background_opacity = 1.0
+			else
+				overrides.text_background_opacity = 0.7
+			end
+			window:set_config_overrides(overrides)
+			window:toast_notification(
+				"WezTerm",
+				string.format("Neovim bg opacity: %.2f", overrides.text_background_opacity)
+			)
+		end),
+	},
 	-- nvimペインにフォーカス
 	{
 		key = ";",
