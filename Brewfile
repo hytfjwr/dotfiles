@@ -47,6 +47,7 @@ brew "hashicorp/tap/terraform-ls"
 brew "k1low/tap/mo"
 brew "fswatch"
 brew "lefthook"
+brew "herdr"
 
 # Dependencies for mise builds
 brew "rbenv/tap/openssl@1.1"
