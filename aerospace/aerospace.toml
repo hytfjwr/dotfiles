@@ -249,4 +249,5 @@ run = 'move-node-to-workspace L'
 
 # Catch-all: 上記のどのルールにもマッチしないアプリは Workspace F へ
 [[on-window-detected]]
+if = 'true'
 run = 'move-node-to-workspace F'
