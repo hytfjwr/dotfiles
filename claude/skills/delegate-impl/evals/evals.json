@@ -1,0 +1,19 @@
+{
+  "skill_name": "delegate-impl",
+  "evals": [
+    {
+      "id": 0,
+      "name": "priority-feature",
+      "prompt": "このタスクトラッカー CLI に優先度機能を追加して。add コマンドに --priority high|medium|low オプション（省略時は medium）を追加し、タスクに priority フィールドを持たせる。list コマンドは high → medium → low の順に表示する（同じ優先度内は id 順）。表示にも優先度がわかるマークを付けて。既存テストを壊さず、優先度まわりのテストも追加して。実装は Sonnet のエージェントに委譲して進めて。",
+      "expected_output": "store.js/cli.js/format.js に priority 対応が入り、テストが全件パスする。スキルあり実行では implementer (Sonnet) への委譲と親による検証が行われる。",
+      "files": ["sandbox-template (task-tracker JS project)"]
+    },
+    {
+      "id": 1,
+      "name": "stats-command",
+      "prompt": "stats コマンドを追加して。総タスク数・完了数・未完了数・完了率（% 小数点以下1桁）を表示する。タスクが0件のときは完了率 0.0% でゼロ除算にならないこと。テストも追加して。実装はコストの低いモデルに任せて、最後にちゃんと検証して。",
+      "expected_output": "stats コマンドが追加され、0件時のエッジケース含めテストが全件パスする。スキルあり実行では Sonnet エージェントへの委譲と親による検証が行われる。",
+      "files": ["sandbox-template (task-tracker JS project)"]
+    }
+  ]
+}
