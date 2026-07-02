@@ -110,6 +110,7 @@ alias dbtf=/Users/hayato.fujiwara/.local/bin/dbt
 eval "$(tirith init --shell zsh)"
 
 # zoxide - smarter cd command (must be at the end after all PATH modifications)
+export _ZO_DOCTOR=0
 eval "$(zoxide init zsh)"
 alias cd="z"
 alias cdi="zi"
