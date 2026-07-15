@@ -107,7 +107,8 @@ export PATH="$PATH:/Users/hayato.fujiwara/.local/bin"
 # dbt aliases
 alias dbtf=/Users/hayato.fujiwara/.local/bin/dbt
 
-eval "$(tirith init --shell zsh)"
+# herdr completions
+eval "$(herdr completion zsh)"
 
 # zoxide - smarter cd command (must be at the end after all PATH modifications)
 export _ZO_DOCTOR=0
