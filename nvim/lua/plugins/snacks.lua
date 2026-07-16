@@ -8,8 +8,10 @@ return {
     -- or leave it empty to use the default settings
     -- refer to the configuration section below
     bigfile = { enabled = true },
+    -- 起動画面は milli.nvim の全画面 matrix rain に置き換え済み（plugins/milli.lua）。
+    -- 下記の曜日別ヘッダー設定は enabled = true に戻せば復活する。
     dashboard = {
-      enabled = true,
+      enabled = false,
       sections = {
         { section = "header" },
         {
