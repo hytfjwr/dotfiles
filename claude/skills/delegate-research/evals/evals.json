@@ -1,0 +1,36 @@
+{
+  "skill_name": "delegate-research",
+  "evals": [
+    {
+      "id": 0,
+      "name": "symlink-inventory",
+      "prompt": "このdotfilesリポジトリのセットアップがホームディレクトリ以下に作るシンボリックリンクを全部洗い出して。リンク元→リンク先の一覧、リンク先に既存ファイルがあった場合の挙動、条件付きでしか作られないリンク（ビルド済みバイナリやアプリの有無に依存するもの）も調査して。調査は安いモデルのエージェントに任せて進めて。",
+      "expected_output": "scripts/link.sh の全 ln -sfn 呼び出しが根拠 file:line 付きで列挙され、-sfn による既存ファイル上書きの挙動、条件付きリンク（wezterm-tmux-shim / claude-statusline / VSCode / Cursor）が説明される。スキルあり実行では researcher (Sonnet) への委譲と親による検証が行われる。",
+      "files": ["dotfiles repo (read-only research target)"],
+      "expectations": [
+        "report.md exists and contains a structured research report in Japanese answering the symlink inventory question",
+        "The report enumerates at least 22 of the 24 unconditional symlinks created by scripts/link.sh (4 home dotfiles incl. .gitconfig-hytfjwr, 5 ~/.config dirs incl. ghostty and gh, 2 statusbar files, mise config, 8 local_bin scripts, codex config, claude settings/skills/rules)",
+        "The report identifies all 4 conditional link groups: wezterm-tmux-shim as ~/.local/bin/tmux, claude-statusline, VSCode settings/keybindings, Cursor settings/keybindings",
+        "The report explains that ln -sfn force-overwrites an existing file or symlink at the destination without creating a backup",
+        "Spot-checked citations are accurate: at least 3 cited file/line references exist in the repo and support the claim made about them",
+        "process.md shows the investigation was delegated to a cheaper agent (researcher subagent or a sonnet-model agent) and the parent independently verified at least one citation before reporting"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "zsh-path-tracing",
+      "prompt": "zsh 起動時に PATH がどこで何回変更されるか調査してほしい。zsh/.zshrc と、そこから読み込まれるファイルを対象に、変更箇所の一覧（ファイル:行）、追加されるディレクトリ、前置き/後置きの別、重複して追加されているパスがないかをまとめて。",
+      "expected_output": ".zshrc 内の PATH 変更（ansible, bison, gcloud, pnpm, bun, devcontainers, .local/bin ほか）が file:line 付きで列挙され、~/.local/bin が複数箇所で重複して追加されていることが指摘される。スキルあり実行では researcher への委譲と親による検証が行われる。",
+      "files": ["dotfiles repo (read-only research target)"],
+      "expectations": [
+        "report.md exists and contains a structured research report in Japanese with a file:line list of PATH modifications",
+        "The report identifies at least 8 distinct PATH-modifying sites in zsh/.zshrc (among lines 19-21, 27, 37, 44-47, 59, 62, 88, 91-93, 98, 100-102, 105)",
+        "The report explicitly flags that ~/.local/bin is added multiple times, identifying at least 3 of the ~6 sites (L19 via local_bin/env, L88, L91-93, L98, L100-102, L105)",
+        "The report correctly classifies prepend vs append: lines 98 and 105 are appends, ansible/bison/pnpm/bun/devcontainers additions are prepends",
+        "The report accounts for PATH changes coming from sourced or eval'd code, mentioning at least two of: ~/.local/bin/env (L19), mise activate (L27), gcloud path.zsh.inc (L37)",
+        "Spot-checked citations are accurate: at least 3 cited file/line references exist in the repo and support the claim made about them",
+        "process.md shows the investigation was delegated to a cheaper agent (researcher subagent or a sonnet-model agent) and the parent independently verified at least one citation before reporting"
+      ]
+    }
+  ]
+}
