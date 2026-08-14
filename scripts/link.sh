@@ -47,6 +47,12 @@ mkdir -p "$HOME/.config/mise"
 info "Linking mise config"
 ln -sfn "$DOTFILES_DIR/mise/config.toml" "$HOME/.config/mise/config.toml"
 
+info "Creating ~/.config/herdr directory"
+mkdir -p "$HOME/.config/herdr"
+
+info "Linking herdr config"
+ln -sfn "$DOTFILES_DIR/herdr/config.toml" "$HOME/.config/herdr/config.toml"
+
 info "Creating ~/.local/bin directory"
 mkdir -p "$HOME/.local/bin"
 

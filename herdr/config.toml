@@ -1,0 +1,29 @@
+onboarding = false
+[ui]
+agent_panel_sort = "priority"
+show_agent_labels_on_pane_borders = true
+
+[ui.toast]
+delivery = "herdr"
+
+[experimental]
+pane_history = true
+switch_ascii_input_source_in_prefix = true
+kitty_graphics = true
+
+[theme]
+name = "one-dark"
+auto_switch = false
+
+# herdr-file-viewer
+[[keys.command]]
+key = "prefix+f"
+type = "plugin_action"
+command = "herdr-file-viewer.open-file-viewer"
+description = "open file viewer in split"
+
+[[keys.command]]
+key = "prefix+shift+f"
+type = "plugin_action"
+command = "herdr-file-viewer.open-file-viewer-tab"
+description = "open file viewer in tab"
