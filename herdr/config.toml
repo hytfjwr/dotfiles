@@ -30,3 +30,12 @@ key = "prefix+shift+f"
 type = "plugin_action"
 command = "herdr-file-viewer.open-file-viewer-tab"
 description = "open file viewer in tab"
+
+# lazygit
+[[keys.command]]
+key = "prefix+l"
+type = "popup"
+command = "lazygit"
+width = "80%"
+height = "80%"
+description = "open lazygit in popup"
