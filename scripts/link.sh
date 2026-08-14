@@ -53,6 +53,9 @@ mkdir -p "$HOME/.config/herdr"
 info "Linking herdr config"
 ln -sfn "$DOTFILES_DIR/herdr/config.toml" "$HOME/.config/herdr/config.toml"
 
+info "Linking starship config"
+ln -sfn "$DOTFILES_DIR/starship/starship.toml" "$HOME/.config/starship.toml"
+
 info "Creating ~/.local/bin directory"
 mkdir -p "$HOME/.local/bin"
 
