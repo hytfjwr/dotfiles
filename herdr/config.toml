@@ -15,6 +15,9 @@ kitty_graphics = true
 name = "one-dark"
 auto_switch = false
 
+[keys]
+prefix = "ctrl+space"
+
 # herdr-file-viewer
 [[keys.command]]
 key = "prefix+f"
