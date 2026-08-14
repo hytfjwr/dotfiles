@@ -1,8 +1,4 @@
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
 export ZSH="$HOME/.oh-my-zsh"
-ZSH_THEME="powerlevel10k/powerlevel10k"
 zstyle ':omz:update' frequency 13
 plugins=(git zsh-autosuggestions zsh-syntax-highlighting aliases copypath history docker github composer laravel brew gh npm sudo web-search docker-compose)
 source $ZSH/oh-my-zsh.sh
@@ -13,7 +9,6 @@ else
 fi
 alias v="nvim"
 alias vim="nvim"
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 export LANG=ja_JP.UTF-8
 
 . "$HOME/.local/bin/env"
@@ -115,3 +110,6 @@ export _ZO_DOCTOR=0
 eval "$(zoxide init zsh)"
 alias cd="z"
 alias cdi="zi"
+
+# starship - cross-shell prompt (must be at the end so it wins over other prompt setup)
+eval "$(starship init zsh)"
