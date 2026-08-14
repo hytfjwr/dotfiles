@@ -16,16 +16,6 @@ else
     warn "Oh My Zsh already installed"
 fi
 
-section "Installing Powerlevel10k theme"
-
-if [ ! -d "$ZSH_CUSTOM/themes/powerlevel10k" ]; then
-    info "Cloning powerlevel10k..."
-    git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$ZSH_CUSTOM/themes/powerlevel10k"
-    success "Powerlevel10k installed"
-else
-    warn "Powerlevel10k already installed"
-fi
-
 section "Installing zsh plugins"
 
 if [ ! -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ]; then
