@@ -16,7 +16,7 @@ name = "one-dark"
 auto_switch = false
 
 [keys]
-prefix = "ctrl+cmd"
+prefix = "ctrl+w"
 
 # herdr-file-viewer
 [[keys.command]]
