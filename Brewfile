@@ -50,6 +50,7 @@ brew "k1low/tap/mo"
 brew "fswatch"
 brew "lefthook"
 brew "herdr"
+brew "starship"
 
 # Dependencies for mise builds
 brew "rbenv/tap/openssl@1.1"
