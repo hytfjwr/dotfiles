@@ -1,18 +1,31 @@
 {
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "CLAUDE_CODE_NO_FLICKER": "1",
+    "CLAUDE_CODE_SCROLL_SPEED": "4",
     "TMUX": "wezterm-shim/0/0",
-    "WEZTERM_TMUX_SHIM_LOG": "/tmp/wezterm-tmux-shim.log",
-    "CLAUDE_CODE_NO_FLICKER": "1"
+    "WEZTERM_TMUX_SHIM_LOG": "/tmp/wezterm-tmux-shim.log"
   },
   "attribution": {
     "commit": "",
     "pr": ""
   },
   "permissions": {
-    "defaultMode": "default"
+    "defaultMode": "auto"
   },
+  "model": "opus[1m]",
   "hooks": {
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "afplay /System/Library/Sounds/Blow.aiff"
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "",
@@ -25,13 +38,14 @@
         ]
       }
     ],
-    "Notification": [
+    "SessionStart": [
       {
-        "matcher": "",
+        "matcher": "*",
         "hooks": [
           {
             "type": "command",
-            "command": "afplay /System/Library/Sounds/Blow.aiff"
+            "command": "bash '/Users/hayato.fujiwara/.claude/hooks/herdr-agent-state.sh' session",
+            "timeout": 10
           }
         ]
       }
@@ -48,33 +62,56 @@
       }
     ]
   },
+  "worktree": {
+    "baseRef": "fresh"
+  },
   "statusLine": {
     "type": "command",
     "command": "~/.local/bin/claude-statusline",
     "padding": 0
   },
   "enabledPlugins": {
-    "php-lsp@claude-plugins-official": true,
-    "typescript-lsp@claude-plugins-official": true,
-    "frontend-design@claude-plugins-official": true,
-    "code-simplifier@claude-plugins-official": true,
-    "skill-creator@claude-plugins-official": true,
-    "code-review@claude-plugins-official": true,
-    "feature-dev@claude-plugins-official": true,
-    "claude-md-management@claude-plugins-official": true,
     "atlassian@claude-plugins-official": true,
-    "slack@claude-plugins-official": true,
+    "aws-core@claude-plugins-official": true,
+    "claude-md-management@claude-plugins-official": true,
+    "code-review@claude-plugins-official": true,
+    "code-simplifier@claude-plugins-official": true,
+    "codex@openai-codex": true,
+    "commit-commands@claude-plugins-official": true,
+    "dbt@dbt-agent-marketplace": true,
+    "feature-dev@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true,
+    "php-lsp@claude-plugins-official": true,
     "pr-review-toolkit@claude-plugins-official": false,
-    "commit-commands@claude-plugins-official": true
+    "skill-creator@claude-plugins-official": true,
+    "slack@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "dbt-agent-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "dbt-labs/dbt-agent-skills"
+      },
+      "autoUpdate": true
+    },
+    "openai-codex": {
+      "source": {
+        "source": "github",
+        "repo": "openai/codex-plugin-cc"
+      },
+      "autoUpdate": true
+    }
   },
   "language": "思考・調査するときは英語、ユーザーと対話するとき日本語",
   "effortLevel": "xhigh",
-  "advisorModel": "opus",
   "skipDangerousModePermissionPrompt": true,
   "editorMode": "vim",
   "verbose": true,
-  "teammateMode": "tmux",
-  "remoteControlAtStartup": true,
+  "preferredNotifChannel": "auto",
+  "teammateMode": "in-process",
+  "remoteControlAtStartup": false,
+  "inputNeededNotifEnabled": true,
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true
 }
