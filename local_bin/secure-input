@@ -1,0 +1,247 @@
+#!/bin/bash
+# secure-input - Secure Input を握っているプロセス・アプリを特定する
+#
+# macOS の Secure Input が有効な間は 3rd パーティアプリのキーイベント読み取り
+# (event tap) がブロックされ、AeroSpace などのグローバルホットキーが死ぬ。
+# 通常のタイピングは普通にできるので原因に気づきにくい。
+# このスクリプトは有効/無効の判定と、握っているプロセスの特定を行う。
+#
+# NOTE: Secure Input はシステム設定のトグルではなく、アプリが Carbon の
+#       EnableSecureEventInput() を呼んで有効化するもの。システム側から
+#       強制解除する手段は存在しないため、対処は「握っているアプリを終了
+#       (または再起動) する」か「画面ロック→解除でセッション状態を再初期化
+#       する」の二択になる。
+
+set -euo pipefail
+
+QUIET=false
+WATCH=false
+INTERVAL=2
+
+for arg in "$@"; do
+    case "$arg" in
+        --quiet) QUIET=true ;;
+        --watch) WATCH=true ;;
+        --help|-h)
+            echo "Usage: secure-input [--watch] [--quiet]"
+            echo ""
+            echo "Options:"
+            echo "  --watch  状態が変化するたびに出力し続ける (Ctrl-C で終了)"
+            echo "  --quiet  対処方法のヒントを出さず状態のみ表示"
+            echo ""
+            echo "Exit status:"
+            echo "  0  Secure Input は無効 (グローバルホットキーは正常)"
+            echo "  1  Secure Input が有効 (ホットキーが死んでいる)"
+            echo "  2  引数エラー"
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $arg" >&2
+            exit 2
+            ;;
+    esac
+done
+
+# ioreg から Secure Input の保持 PID を取得する
+#
+# 無効時は "=0" になるのではなくキー自体が IOConsoleUsers から消えるため、
+# その場合は空文字を返す。
+get_holder_pid() {
+    ioreg -l -w 0 \
+        | grep -o 'kCGSSessionSecureInputPID"=[0-9]*' \
+        | head -1 \
+        | cut -d= -f2 || true
+}
+
+# Carbon の IsSecureEventInputEnabled() を呼んで有効/無効を得る
+#
+# ioreg の PID はプロセスが死んだ後も残留したり、実際には
+# EnableSecureEventInput() を呼んでいないアプリを指したりするため、
+# 「本当に有効なのか」はこの API で確認する。
+# python3 が見つからない場合は unknown を返す。
+api_enabled() {
+    local py=""
+    local candidate
+
+    for candidate in /usr/bin/python3 python3; do
+        if command -v "$candidate" >/dev/null 2>&1; then
+            py="$candidate"
+            break
+        fi
+    done
+
+    if [ -z "$py" ]; then
+        echo "unknown"
+        return
+    fi
+
+    "$py" - 2>/dev/null <<'PY' || echo "unknown"
+import ctypes
+
+lib = ctypes.cdll.LoadLibrary("/System/Library/Frameworks/Carbon.framework/Carbon")
+lib.IsSecureEventInputEnabled.restype = ctypes.c_bool
+print("yes" if lib.IsSecureEventInputEnabled() else "no")
+PY
+}
+
+# PID の実行パスを返す (プロセスが存在しなければ空文字)
+get_exe_path() {
+    ps -p "$1" -o comm= 2>/dev/null | sed 's/^ *//' || true
+}
+
+# 実行パスから .app バンドルのパスを取り出す (バンドル外なら空文字)
+get_bundle_path() {
+    case "$1" in
+        *.app/*) echo "${1%%.app/*}.app" ;;
+        *)       echo "" ;;
+    esac
+}
+
+# Info.plist から任意のキーを読む
+read_plist_key() {
+    /usr/libexec/PlistBuddy -c "Print :$2" "$1/Contents/Info.plist" 2>/dev/null || true
+}
+
+# 現在の状態を 1 行の署名にする (--watch の変化検出用)
+state_signature() {
+    echo "$(get_holder_pid):$(api_enabled)"
+}
+
+# 対処方法のヒントを出力する
+#
+# 保持プロセスが生きているか死んでいるかで対処が変わる。死んでいる場合は
+# kill する対象が存在しないので、セッション状態の再初期化しか手がない。
+print_hints() {
+    local pid="$1"
+    local alive="$2"
+    local bundle_id="$3"
+    local app_name="$4"
+
+    echo ""
+    echo "AeroSpace などのグローバルホットキーはこの状態では動きません。"
+    echo ""
+    echo "対処:"
+
+    if [ "$alive" = true ]; then
+        if [ -n "$bundle_id" ]; then
+            echo "  1. ${app_name:-該当アプリ} を終了する"
+            echo "       osascript -e 'tell application id \"$bundle_id\" to quit'"
+            echo "     終了しても解放されない場合はアプリ自体を再起動する"
+        else
+            echo "  1. 保持プロセスを終了する"
+            echo "       kill $pid"
+        fi
+        echo "  2. ターミナルが保持している場合は Secure Keyboard Entry を確認する"
+        echo "       (Terminal.app なら View メニュー / defaults read com.apple.Terminal SecureKeyboardEntry)"
+        echo "  3. それでも残る場合は画面ロック→解除でセッション状態を再初期化する"
+        echo "       pmset displaysleepnow"
+    else
+        echo "  保持プロセスは既に終了しており kill する対象がありません。"
+        echo "  アプリが DisableSecureEventInput() を呼ばずに死んだためフラグが"
+        echo "  リークしています。画面ロック→解除でセッション状態を再初期化してください。"
+        echo ""
+        echo "       pmset displaysleepnow"
+        echo ""
+        echo "  Secure Input 下では合成キーストロークが通らないことがあるため、"
+        echo "  Ctrl+Cmd+Q よりも上記コマンドの方が確実です。"
+    fi
+}
+
+# 状態を 1 回分レポートする
+# 戻り値: 0 = Secure Input 無効, 1 = 有効
+report() {
+    local pid api exe bundle bundle_id app_name app_ver alive
+
+    pid="$(get_holder_pid)"
+    api="$(api_enabled)"
+
+    # PID が取れず API も無効なら正常
+    if [ -z "$pid" ] && [ "$api" != "yes" ]; then
+        echo "Secure Input: INACTIVE"
+        if [ "$api" = "unknown" ]; then
+            echo "  Carbon API : unknown (python3 が見つからず未確認)"
+        fi
+        return 0
+    fi
+
+    # PID は無いが API が有効と言っている場合は保持者を特定できない
+    if [ -z "$pid" ]; then
+        echo "Secure Input: ACTIVE (holder unknown)"
+        echo "  Carbon API : enabled"
+        echo "  Holder PID : ioreg に kCGSSessionSecureInputPID が無く特定できません"
+        if [ "$QUIET" = false ]; then
+            echo ""
+            echo "対処: 画面ロック→解除でセッション状態を再初期化してください。"
+            echo "       pmset displaysleepnow"
+        fi
+        return 1
+    fi
+
+    # ioreg に PID があるが API は無効 = 残留した表示なので実害なし
+    if [ "$api" = "no" ]; then
+        echo "Secure Input: INACTIVE"
+        echo "  Note       : ioreg には PID $pid が残っていますが API は無効を返しています"
+        return 0
+    fi
+
+    exe="$(get_exe_path "$pid")"
+    if [ -n "$exe" ]; then
+        alive=true
+    else
+        alive=false
+    fi
+
+    bundle="$(get_bundle_path "$exe")"
+    bundle_id=""
+    app_name=""
+    app_ver=""
+    if [ -n "$bundle" ]; then
+        bundle_id="$(read_plist_key "$bundle" CFBundleIdentifier)"
+        app_name="$(read_plist_key "$bundle" CFBundleName)"
+        app_ver="$(read_plist_key "$bundle" CFBundleShortVersionString)"
+    fi
+
+    echo "Secure Input: ACTIVE"
+    echo "  Holder PID : $pid"
+
+    if [ "$alive" = true ]; then
+        echo "  Executable : $exe"
+        if [ -n "$bundle_id" ]; then
+            echo "  App        : ${app_name:-unknown} ($bundle_id)${app_ver:+ $app_ver}"
+        fi
+        echo "  Process    : alive"
+    else
+        echo "  Executable : (プロセスは存在しません)"
+        echo "  Process    : DEAD - フラグがリークして残留しています"
+    fi
+
+    if [ "$api" = "unknown" ]; then
+        echo "  Carbon API : unknown (python3 が見つからず未確認)"
+    else
+        echo "  Carbon API : enabled"
+    fi
+
+    if [ "$QUIET" = false ]; then
+        print_hints "$pid" "$alive" "$bundle_id" "$app_name"
+    fi
+
+    return 1
+}
+
+if [ "$WATCH" = true ]; then
+    echo "Watching Secure Input every ${INTERVAL}s (Ctrl-C to stop)..."
+    echo ""
+    prev=""
+    while true; do
+        sig="$(state_signature)"
+        if [ "$sig" != "$prev" ]; then
+            date '+%H:%M:%S'
+            report || true
+            echo ""
+            prev="$sig"
+        fi
+        sleep "$INTERVAL"
+    done
+fi
+
+report

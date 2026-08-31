@@ -58,6 +58,7 @@ LINKS=(
     "local_bin/nvim-clean|$HOME/.local/bin/nvim-clean"
     "local_bin/awake|$HOME/.local/bin/awake"
     "local_bin/wezterm-clean|$HOME/.local/bin/wezterm-clean"
+    "local_bin/secure-input|$HOME/.local/bin/secure-input"
     "local_bin/claude-session-bridge|$HOME/.local/bin/claude-session-bridge"
 
     # Codex
