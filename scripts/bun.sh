@@ -2,12 +2,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-DOTFILES_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 source "$SCRIPT_DIR/lib/colors.sh"
-
-ZSHRC_FILE="$DOTFILES_DIR/zsh/.zshrc"
-# shellcheck disable=SC2016
-BUN_PATH_SETTING='export PATH="$BUN_INSTALL/bin:$PATH"'
 
 section "Installing bun"
 
@@ -19,22 +14,9 @@ else
 fi
 
 # Add bun to PATH in current session
+# (permanent setting lives in zsh/.zshrc)
 if [[ ":$PATH:" != *":$HOME/.bun/bin:"* ]]; then
     export PATH="$HOME/.bun/bin:$PATH"
-fi
-
-# Check if bun path is already in zshrc
-if ! grep -q "BUN_INSTALL" "$ZSHRC_FILE" 2>/dev/null; then
-    info "Adding bun path to .zshrc..."
-    {
-        echo ""
-        echo "# bun"
-        echo "export BUN_INSTALL=\"\$HOME/.bun\""
-        echo "$BUN_PATH_SETTING"
-    } >> "$ZSHRC_FILE"
-    success "bun path added to .zshrc"
-else
-    warn "bun path already configured in .zshrc"
 fi
 
 success "bun installed: $(bun --version)"
