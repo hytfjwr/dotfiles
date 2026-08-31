@@ -38,3 +38,4 @@ lint:
 	cd scripts && shellcheck -x *.sh lib/*.sh ../setup.sh
 	shellcheck local_bin/aerospace-fix-windows
 	shellcheck local_bin/awake
+	shellcheck local_bin/secure-input
