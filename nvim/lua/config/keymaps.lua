@@ -109,3 +109,13 @@ vim.keymap.set("v", "<leader>cl", function()
     vim.notify("Copied (no terminal integration): " .. reference, vim.log.levels.WARN)
   end
 end, { desc = "Send line reference to last active pane" })
+
+-- tuicr (コードレビューTUI) をfloat terminalで開く: <leader>gR
+-- 終了後は tuicr-review がコメントを Claude Code ペイン (herdr) へ送る
+vim.keymap.set("n", "<leader>gR", function()
+  if vim.fn.executable("tuicr-review") ~= 1 then
+    vim.notify("tuicr-review not found in PATH", vim.log.levels.WARN)
+    return
+  end
+  Snacks.terminal("tuicr-review", { cwd = LazyVim.root.git(), win = { style = "lazygit" } })
+end, { desc = "Review diff with tuicr" })

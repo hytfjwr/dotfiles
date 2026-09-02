@@ -47,37 +47,43 @@ if [ ! -x "$PROMPT_BIN" ]; then
     exit 1
 fi
 
+TARGET_HINT=""
+
 # 起動時コンテキストの解決: フォーカス中の Claude ペインを 1 回だけ調べ、
-# 送信先ヒント (TUICR_TARGET_HINT) を設定し、必要なら現在ディレクトリを
-# そのペインの foreground_cwd (worktree) へ合わせる。
-if [ "${HERDR_ENV:-}" = "1" ] && command -v herdr >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
-    list_json="$(herdr agent list 2>/dev/null)" || list_json=""
-    focus_row=""
-    if [ -n "$list_json" ]; then
-        # shellcheck disable=SC2016
-        focus_row="$(printf '%s' "$list_json" | jq -r '
-            .result.agents[] | select(.agent == "claude" and .focused == true)
-            | [.pane_id, (.foreground_cwd // "")] | @tsv
-        ' 2>/dev/null | head -n 1)" || focus_row=""
-    fi
+# 送信先ヒント (TARGET_HINT) を覚え、必要なら現在ディレクトリをそのペインの
+# foreground_cwd (worktree) へ合わせる。
+#
+# 「どのペインから起動されたか」を herdr に問う API は無いため、フォーカスを
+# 代理シグナルとして使っている (herdr 0.8.2 時点)。
+resolve_launch_context() {
+    [ "${HERDR_ENV:-}" = "1" ] || return 0
+    command -v herdr >/dev/null 2>&1 || return 0
+    command -v jq >/dev/null 2>&1 || return 0
 
-    if [ -n "$focus_row" ]; then
-        focus_pane="$(printf '%s' "$focus_row" | cut -f1)"
-        focus_cwd="$(printf '%s' "$focus_row" | cut -f2)"
+    local list_json focus_row focus_pane focus_cwd
+    list_json="$(herdr agent list 2>/dev/null)" || return 0
+    [ -n "$list_json" ] || return 0
 
-        if [ -z "${TUICR_REVIEW_TARGET:-}" ]; then
-            export TUICR_TARGET_HINT="$focus_pane"
-        fi
+    # shellcheck disable=SC2016
+    focus_row="$(printf '%s' "$list_json" | jq -r '
+        .result.agents[] | select(.agent == "claude" and .focused == true)
+        | [.pane_id, (.foreground_cwd // "")] | @tsv
+    ' 2>/dev/null | head -n 1)" || return 0
+    [ -n "$focus_row" ] || return 0
 
-        if [ "${TUICR_REVIEW_NO_FOLLOW:-}" != "1" ] \
-            && [ -n "$focus_cwd" ] \
-            && [ -d "$focus_cwd" ] \
-            && [ "$focus_cwd" != "$PWD" ] \
-            && git -C "$focus_cwd" rev-parse --show-toplevel >/dev/null 2>&1; then
-            cd "$focus_cwd"
-        fi
-    fi
-fi
+    IFS=$'\t' read -r focus_pane focus_cwd <<< "$focus_row"
+    TARGET_HINT="$focus_pane"
+
+    [ "${TUICR_REVIEW_NO_FOLLOW:-}" != "1" ] || return 0
+    [ -n "$focus_cwd" ] || return 0
+    [ -d "$focus_cwd" ] || return 0
+    [ "$focus_cwd" != "$PWD" ] || return 0
+    git -C "$focus_cwd" rev-parse --show-toplevel >/dev/null 2>&1 || return 0
+
+    cd "$focus_cwd"
+}
+
+resolve_launch_context
 
 START=$(date +%s)
 
@@ -87,19 +93,20 @@ if [ "$status" -ne 0 ]; then
     exit "$status"
 fi
 
-mode=()
+args=(--since "$START")
 if [ "${HERDR_ENV:-}" = "1" ]; then
     if [ -n "${TUICR_REVIEW_TARGET:-}" ]; then
-        mode+=(--send "$TUICR_REVIEW_TARGET")
+        args+=(--send "$TUICR_REVIEW_TARGET")
     else
-        mode+=(--send)
+        [ -z "$TARGET_HINT" ] || args+=(--target-hint "$TARGET_HINT")
+        args+=(--send)
     fi
 else
-    mode+=(--copy)
+    args+=(--copy)
 fi
 
 rc=0
-msg="$("$PROMPT_BIN" --since "$START" "${mode[@]}" 2>&1)" || rc=$?
+msg="$("$PROMPT_BIN" "${args[@]}" 2>&1)" || rc=$?
 
 if [ "${HERDR_ENV:-}" = "1" ] && command -v herdr >/dev/null 2>&1; then
     body="$(printf '%s\n' "$msg" | tail -n 1)"
