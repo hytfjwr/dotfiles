@@ -14,21 +14,24 @@ FROM_JSON=""
 COPY=false
 SEND=false
 TARGET=""
+TARGET_HINT=""
 
 usage() {
     cat <<'EOF'
-Usage: tuicr-prompt [--session <slug>] [--since <epoch|rfc3339>] [--from-json <file>] [--copy | --send [TARGET]]
+Usage: tuicr-prompt [--session <slug>] [--since <epoch|rfc3339>] [--from-json <file>]
+                    [--target-hint <pane>] [--copy | --send [TARGET]]
 
 Options:
-  --session <slug>    tuicr のセッション slug を明示する（既定: アクティブなもの、無ければ最新）
-  --since <t>         この時刻以降に作成されたコメントだけを対象にする（epoch 秒または RFC3339 UTC）
-  --from-json <file>  tuicr を呼ばず、コメント JSON をファイルから読む（テスト用）
-  --copy              整形結果を pbcopy でクリップボードにコピーする
-  --send [TARGET]     クリップボードにコピーしたうえで herdr agent prompt で Claude Code ペインに送る
-                      TARGET 省略時は herdr agent list から自動選択（複数候補は fzf）
+  --session <slug>     tuicr のセッション slug を明示する（既定: アクティブなもの、無ければ最新）
+  --since <t>          この時刻以降に作成されたコメントだけを対象にする（epoch 秒または RFC3339 UTC）
+  --from-json <file>   tuicr を呼ばず、コメント JSON をファイルから読む（テスト用）
+  --target-hint <pane> 送信先ペインの第一候補。生きていなければ通常の自動選択に落ちる
+                       （tuicr-review が起動時のフォーカスから渡す）
+  --copy               整形結果を pbcopy でクリップボードにコピーする
+  --send [TARGET]      クリップボードにコピーしたうえで herdr agent prompt で Claude Code ペインに送る
+                       TARGET 省略時は herdr agent list から自動選択（複数候補は fzf）
 
 環境変数:
-  TUICR_TARGET_HINT      送信先ペインの候補（tuicr-review が起動時のフォーカスから設定する）
   TUICR_AGENT_LIST_JSON  herdr agent list の代わりに読む JSON ファイル（テスト用）
 
 Exit status:
@@ -62,7 +65,7 @@ resolve_from_rows() {
     if [ -z "$rows" ]; then
         return
     fi
-    n="$(printf '%s\n' "$rows" | wc -l | tr -d ' ')"
+    n="$(printf '%s\n' "$rows" | wc -l)"
     if [ "$n" -eq 1 ]; then
         printf '%s\n' "$rows" | cut -f1
         return
@@ -71,7 +74,7 @@ resolve_from_rows() {
     if [ -z "$focused_rows" ]; then
         return
     fi
-    focused_n="$(printf '%s\n' "$focused_rows" | wc -l | tr -d ' ')"
+    focused_n="$(printf '%s\n' "$focused_rows" | wc -l)"
     if [ "$focused_n" -eq 1 ]; then
         printf '%s\n' "$focused_rows" | cut -f1
     fi
@@ -82,11 +85,15 @@ resolve_from_rows() {
 # 候補集合は「foreground_cwd が ROOT 配下」「cwd が ROOT 配下」「同一
 # リポジトリの他ワークツリー配下 (foreground_cwd または cwd)」「全 claude
 # ペイン」の順で最初に空でないものを採用する (tier をまたいで混ぜない)。
-# TUICR_TARGET_HINT が生きているペインを指していればそれを最優先で使う。
+# --target-hint が生きているペインを指していればそれを最優先で使う。
 # 採用した候補集合が 1 件ならそれ、複数件で focused なペインがちょうど 1 つ
 # ならそれ、それ以外は fzf に選ばせる。
+#
+# 「ユーザーがどのペインから起動したか」を herdr に問う API は無いため、
+# focused を代理シグナルとして使っている (herdr 0.8.2 時点)。直接的な手段が
+# 増えたら差し替えること。
 select_target() {
-    local list_json rows chosen hint_match worktree_roots
+    local list_json rows chosen worktree_roots
 
     if [ -n "${TUICR_AGENT_LIST_JSON:-}" ] && [ -f "$TUICR_AGENT_LIST_JSON" ]; then
         list_json="$(cat "$TUICR_AGENT_LIST_JSON")"
@@ -95,60 +102,37 @@ select_target() {
         exit 1
     fi
 
-    # tier0: TUICR_TARGET_HINT が生きている claude ペインを指していれば即採用
-    if [ -n "${TUICR_TARGET_HINT:-}" ]; then
+    # ヒントが生きている claude ペインを指していれば即採用
+    if [ -n "$TARGET_HINT" ]; then
         # shellcheck disable=SC2016
-        hint_match="$(printf '%s' "$list_json" | jq -r --arg hint "$TUICR_TARGET_HINT" '
+        if [ "$(printf '%s' "$list_json" | jq -r --arg hint "$TARGET_HINT" '
 [ .result.agents[] | select(.agent == "claude" and .pane_id == $hint) ] | length
-')"
-        if [ "$hint_match" -gt 0 ]; then
-            printf '%s\n' "$TUICR_TARGET_HINT"
+')" -gt 0 ]; then
+            printf '%s\n' "$TARGET_HINT"
             return
         fi
     fi
 
-    # 候補集合1: foreground_cwd が ROOT 配下
+    # 同一リポジトリのワークツリー一覧 (候補集合3 用。git 管理外なら空になり、
+    # 空配列はどのペインにもマッチしないのでその段は自然にスキップされる)
+    worktree_roots="$(git -C "$ROOT" worktree list --porcelain 2>/dev/null | sed -n 's/^worktree //p')" || worktree_roots=""
+
     # shellcheck disable=SC2016
-    rows="$(printf '%s' "$list_json" | jq -r --arg root "$ROOT" '
-def under($r): . == $r or startswith($r + "/");
-[ .result.agents[] | select(.agent == "claude" and ((.foreground_cwd // "") | under($root))) ]
-| .[] | [ .pane_id, (.focused | tostring), (.foreground_cwd // ""), (.terminal_title_stripped // "") ] | @tsv
-')"
-
-    # 候補集合2: cwd が ROOT 配下
-    if [ -z "$rows" ]; then
-        # shellcheck disable=SC2016
-        rows="$(printf '%s' "$list_json" | jq -r --arg root "$ROOT" '
-def under($r): . == $r or startswith($r + "/");
-[ .result.agents[] | select(.agent == "claude" and ((.cwd // "") | under($root))) ]
-| .[] | [ .pane_id, (.focused | tostring), (.foreground_cwd // ""), (.terminal_title_stripped // "") ] | @tsv
-')"
-    fi
-
-    # 候補集合3: 同一リポジトリの他ワークツリー配下 (foreground_cwd または cwd)
-    # git worktree list が失敗する (git 管理外) 場合はこの段をスキップする
-    if [ -z "$rows" ]; then
-        worktree_roots="$(git -C "$ROOT" worktree list --porcelain 2>/dev/null | sed -n 's/^worktree //p')" || worktree_roots=""
-        if [ -n "$worktree_roots" ]; then
-            # shellcheck disable=SC2016
-            rows="$(printf '%s' "$list_json" | jq -r --arg roots "$worktree_roots" '
+    rows="$(printf '%s' "$list_json" | jq -r --arg root "$ROOT" --arg roots "$worktree_roots" '
 def under($x; $r): ($x == $r) or ($x | startswith($r + "/"));
 def under_any($x; $rs): any($rs[]; under($x; .));
+def row: [ .pane_id, (.focused | tostring), (.foreground_cwd // ""), (.terminal_title_stripped // "") ] | @tsv;
 ($roots | split("\n") | map(select(. != ""))) as $wt
-| [ .result.agents[] | select(.agent == "claude" and (under_any(.foreground_cwd // ""; $wt) or under_any(.cwd // ""; $wt))) ]
-| .[] | [ .pane_id, (.focused | tostring), (.foreground_cwd // ""), (.terminal_title_stripped // "") ] | @tsv
+| [ .result.agents[] | select(.agent == "claude") ] as $claude
+| ($claude | map(select(under(.foreground_cwd // ""; $root)))) as $fg
+| ($claude | map(select(under(.cwd // ""; $root)))) as $cwd
+| ($claude | map(select(under_any(.foreground_cwd // ""; $wt) or under_any(.cwd // ""; $wt)))) as $wtree
+| (if ($fg | length) > 0 then $fg
+   elif ($cwd | length) > 0 then $cwd
+   elif ($wtree | length) > 0 then $wtree
+   else $claude end)
+| .[] | row
 ')"
-        fi
-    fi
-
-    # 候補集合4: 全 claude ペイン
-    if [ -z "$rows" ]; then
-        # shellcheck disable=SC2016
-        rows="$(printf '%s' "$list_json" | jq -r '
-[ .result.agents[] | select(.agent == "claude") ]
-| .[] | [ .pane_id, (.focused | tostring), (.foreground_cwd // ""), (.terminal_title_stripped // "") ] | @tsv
-')"
-    fi
 
     if [ -z "$rows" ]; then
         echo "no Claude pane found in herdr" >&2
@@ -198,6 +182,14 @@ while [ $# -gt 0 ]; do
                 exit 2
             fi
             FROM_JSON="$2"
+            shift 2
+            ;;
+        --target-hint)
+            if [ $# -lt 2 ]; then
+                echo "Option $1 requires a value" >&2
+                exit 2
+            fi
+            TARGET_HINT="$2"
             shift 2
             ;;
         --copy)
@@ -275,7 +267,7 @@ def ts: sub("\\.[0-9]+"; "") | sub("\\+00:00$"; "Z") | fromdateiso8601;
 fi
 
 # shellcheck disable=SC2016
-FMT_JSON="$(printf '%s' "$COMMENTS_JSON" | jq -c --arg since_raw "$SINCE" '
+FMT="$(printf '%s' "$COMMENTS_JSON" | jq -r --arg since_raw "$SINCE" '
 def ts: sub("\\.[0-9]+"; "") | sub("\\+00:00$"; "Z") | fromdateiso8601;
 def since:
   if $since_raw == "" then null
@@ -296,15 +288,16 @@ def render:
 | [ .[] | select($s == null or ((.created_at | ts) >= $s)) ]
 | (map(select(.path != null)) + map(select(.path == null)))
 | { count: length, text: (map(render) | join("\n")) }
+| "\(.count)\n\(.text)"
 ')"
 
-COUNT="$(printf '%s' "$FMT_JSON" | jq -r '.count')"
-TEXT="$(printf '%s' "$FMT_JSON" | jq -r '.text')"
-
+# 1 行目が件数、2 行目以降が本文。件数 0 のときは本文が空なので先に弾く
+COUNT="${FMT%%$'\n'*}"
 if [ "$COUNT" -eq 0 ]; then
     echo "no comments (session $SESSION_LABEL)" >&2
     exit 3
 fi
+TEXT="${FMT#*$'\n'}"
 
 if [ "$SEND" = true ]; then
     printf '%s\n' "$TEXT" | pbcopy
