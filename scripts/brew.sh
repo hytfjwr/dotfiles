@@ -16,6 +16,10 @@ else
     warn "Homebrew already installed"
 fi
 
+# tableplus はライセンスの都合で古いバージョンのみアクティベート可能なため、
+# brew bundle に更新させない。環境変数で既に指定されていればそれを優先する。
+export HOMEBREW_BUNDLE_CASK_SKIP="${HOMEBREW_BUNDLE_CASK_SKIP:-tableplus}"
+
 info "Running brew bundle..."
 brew bundle --file="$DOTFILES_DIR/Brewfile" --verbose
 
