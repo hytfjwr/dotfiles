@@ -39,3 +39,12 @@ command = "lazygit"
 width = "80%"
 height = "80%"
 description = "open lazygit in popup"
+
+# tuicr
+[[keys.command]]
+key = "prefix+t"
+type = "popup"
+command = "tuicr-review"
+width = "80%"
+height = "80%"
+description = "review diff in tuicr, send comments to Claude"
