@@ -1,0 +1,257 @@
+#!/bin/bash
+# tuicr-prompt - tuicr のレビューコメントを Claude Code 向けプロンプトに整形する
+#
+# tuicr でつけたレビューコメントを
+#   @src/foo/bar.ts#L45-65 指摘内容
+# の形式に整形し、標準出力・クリップボード・herdr 経由の Claude Code ペインの
+# いずれかに渡す。tuicr-review から呼ばれることを想定しているが単独でも使える。
+
+set -euo pipefail
+
+SESSION=""
+SINCE=""
+FROM_JSON=""
+COPY=false
+SEND=false
+TARGET=""
+
+usage() {
+    cat <<'EOF'
+Usage: tuicr-prompt [--session <slug>] [--since <epoch|rfc3339>] [--from-json <file>] [--copy | --send [TARGET]]
+
+Options:
+  --session <slug>    tuicr のセッション slug を明示する（既定: アクティブなもの、無ければ最新）
+  --since <t>         この時刻以降に作成されたコメントだけを対象にする（epoch 秒または RFC3339 UTC）
+  --from-json <file>  tuicr を呼ばず、コメント JSON をファイルから読む（テスト用）
+  --copy              整形結果を pbcopy でクリップボードにコピーする
+  --send [TARGET]     クリップボードにコピーしたうえで herdr agent prompt で Claude Code ペインに送る
+                      TARGET 省略時は herdr agent list から自動選択（複数候補は fzf）
+
+Exit status:
+  0  成功
+  1  実行エラー（依存コマンド無し、tuicr/herdr の失敗、送信先が見つからない）
+  2  引数エラー
+  3  送るものが無い（セッション無し、またはコメント 0 件）
+EOF
+}
+
+# 依存コマンドが無ければ exit 1 で止める
+require_cmd() {
+    if ! command -v "$1" >/dev/null 2>&1; then
+        echo "$1 not found" >&2
+        exit 1
+    fi
+}
+
+# /dev/tty が対話的に開けるか (fzf の起動可否判定に使う)
+tty_available() {
+    [ -e /dev/tty ] && ( : < /dev/tty ) 2>/dev/null
+}
+
+# herdr agent list からこのリポジトリで動いている Claude ペインを選ぶ
+#
+# foreground_cwd がリポジトリ配下のペインを優先し、無ければ cwd で絞り、
+# それも無ければ全 claude ペインを候補にする。1 件なら即決、複数件で
+# focused なペインがちょうど 1 つならそれ、それ以外は fzf に選ばせる。
+select_target() {
+    local list_json rows n focused_rows focused_n chosen
+
+    if ! list_json="$(herdr agent list)"; then
+        echo "herdr agent list failed" >&2
+        exit 1
+    fi
+
+    # shellcheck disable=SC2016
+    rows="$(printf '%s' "$list_json" | jq -r --arg root "$ROOT" '
+def under($r): . == $r or startswith($r + "/");
+[ .result.agents[] | select(.agent == "claude") ] as $all
+| ([ $all[] | select((.foreground_cwd // "") | under($root)) ]) as $fg
+| ([ $all[] | select((.cwd // "") | under($root)) ]) as $cwd
+| (if ($fg | length) > 0 then $fg elif ($cwd | length) > 0 then $cwd else $all end)
+| .[] | [ .pane_id, (.focused | tostring), (.foreground_cwd // ""), (.terminal_title_stripped // "") ] | @tsv
+')"
+
+    if [ -z "$rows" ]; then
+        echo "no Claude pane found in herdr" >&2
+        exit 1
+    fi
+
+    n="$(printf '%s\n' "$rows" | wc -l | tr -d ' ')"
+    if [ "$n" -eq 1 ]; then
+        printf '%s\n' "$rows" | cut -f1
+        return
+    fi
+
+    focused_rows="$(printf '%s\n' "$rows" | awk -F'\t' '$2 == "true"')"
+    focused_n=0
+    if [ -n "$focused_rows" ]; then
+        focused_n="$(printf '%s\n' "$focused_rows" | wc -l | tr -d ' ')"
+    fi
+    if [ "$focused_n" -eq 1 ]; then
+        printf '%s\n' "$focused_rows" | cut -f1
+        return
+    fi
+
+    if ! command -v fzf >/dev/null 2>&1 || ! tty_available; then
+        printf '%s\n' "$rows" >&2
+        exit 1
+    fi
+
+    chosen="$(printf '%s\n' "$rows" | fzf --select-1 --exit-0 --delimiter '\t' --with-nth 1,3,4 --prompt 'Claude pane> ' | cut -f1)"
+    if [ -z "$chosen" ]; then
+        echo "cancelled" >&2
+        exit 1
+    fi
+    printf '%s\n' "$chosen"
+}
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --session)
+            if [ $# -lt 2 ]; then
+                echo "Option $1 requires a value" >&2
+                exit 2
+            fi
+            SESSION="$2"
+            shift 2
+            ;;
+        --since)
+            if [ $# -lt 2 ]; then
+                echo "Option $1 requires a value" >&2
+                exit 2
+            fi
+            SINCE="$2"
+            shift 2
+            ;;
+        --from-json)
+            if [ $# -lt 2 ]; then
+                echo "Option $1 requires a value" >&2
+                exit 2
+            fi
+            FROM_JSON="$2"
+            shift 2
+            ;;
+        --copy)
+            COPY=true
+            shift
+            ;;
+        --send)
+            SEND=true
+            shift
+            case "${1:-}" in
+                ""|-*) ;;
+                *)
+                    TARGET="$1"
+                    shift
+                    ;;
+            esac
+            ;;
+        --help|-h)
+            usage
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1" >&2
+            exit 2
+            ;;
+    esac
+done
+
+if [ "$COPY" = true ] && [ "$SEND" = true ]; then
+    echo "--copy and --send cannot be used together" >&2
+    exit 2
+fi
+
+require_cmd jq
+if [ -z "$FROM_JSON" ]; then
+    require_cmd tuicr
+fi
+if [ "$COPY" = true ] || [ "$SEND" = true ]; then
+    require_cmd pbcopy
+fi
+if [ "$SEND" = true ]; then
+    require_cmd herdr
+fi
+
+ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+
+if [ -n "$FROM_JSON" ]; then
+    if [ ! -f "$FROM_JSON" ]; then
+        echo "file not found: $FROM_JSON" >&2
+        exit 1
+    fi
+    COMMENTS_JSON="$(cat "$FROM_JSON")"
+    SESSION_LABEL="$FROM_JSON"
+else
+    if [ -z "$SESSION" ]; then
+        LIST_JSON="$(tuicr review list --repo "$ROOT" 2>/dev/null || echo '[]')"
+        # shellcheck disable=SC2016
+        SESSION="$(printf '%s' "$LIST_JSON" | jq -r '
+def ts: sub("\\.[0-9]+"; "") | sub("\\+00:00$"; "Z") | fromdateiso8601;
+(map(select(.active == true)) | .[0].slug)
+// (sort_by(.updated_at | ts) | last | .slug)
+// empty
+')"
+        if [ -z "$SESSION" ]; then
+            echo "no tuicr session for $ROOT" >&2
+            exit 3
+        fi
+    fi
+
+    if ! COMMENTS_JSON="$(tuicr review comments --repo "$ROOT" --session "$SESSION")"; then
+        echo "tuicr review comments failed for session $SESSION" >&2
+        exit 1
+    fi
+    SESSION_LABEL="$SESSION"
+fi
+
+# shellcheck disable=SC2016
+FMT_JSON="$(printf '%s' "$COMMENTS_JSON" | jq -c --arg since_raw "$SINCE" '
+def ts: sub("\\.[0-9]+"; "") | sub("\\+00:00$"; "Z") | fromdateiso8601;
+def since:
+  if $since_raw == "" then null
+  elif ($since_raw | test("^[0-9]+$")) then ($since_raw | tonumber)
+  else ($since_raw | ts) end;
+def anchor:
+  if .path == null then "(review)"
+  elif .start_line == null then "@\(.path)"
+  else "@\(.path)#L\(.start_line)-\(.end_line // .start_line)" end;
+def tags:
+  (if .side == "old" then " (old side)" else "" end)
+  + (if (.comment_type // "none") != "none" then " [\(.comment_type | ascii_upcase)]" else "" end);
+def render:
+  ((.content // "") | sub("\\s+$"; "") | split("\n")) as $l
+  | [ (anchor + tags + " " + ($l[0] // "")) ] + [ $l[1:][] | "  " + . ]
+  | join("\n");
+(since) as $s
+| [ .[] | select($s == null or ((.created_at | ts) >= $s)) ]
+| (map(select(.path != null)) + map(select(.path == null)))
+| { count: length, text: (map(render) | join("\n")) }
+')"
+
+COUNT="$(printf '%s' "$FMT_JSON" | jq -r '.count')"
+TEXT="$(printf '%s' "$FMT_JSON" | jq -r '.text')"
+
+if [ "$COUNT" -eq 0 ]; then
+    echo "no comments (session $SESSION_LABEL)" >&2
+    exit 3
+fi
+
+if [ "$SEND" = true ]; then
+    printf '%s\n' "$TEXT" | pbcopy
+    if [ -z "$TARGET" ]; then
+        TARGET="$(select_target)"
+    fi
+    if herdr agent prompt "$TARGET" "$TEXT" >/dev/null; then
+        echo "Sent $COUNT comment(s) to $TARGET" >&2
+        exit 0
+    fi
+    echo "send failed to $TARGET (text is in the clipboard)" >&2
+    exit 1
+elif [ "$COPY" = true ]; then
+    printf '%s\n' "$TEXT" | pbcopy
+    echo "Copied $COUNT comment(s) from $SESSION_LABEL" >&2
+    exit 0
+else
+    printf '%s\n' "$TEXT"
+fi
