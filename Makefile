@@ -39,3 +39,5 @@ lint:
 	shellcheck local_bin/aerospace-fix-windows
 	shellcheck local_bin/awake
 	shellcheck local_bin/secure-input
+	shellcheck local_bin/tuicr-prompt
+	shellcheck local_bin/tuicr-review

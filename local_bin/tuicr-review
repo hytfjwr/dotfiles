@@ -1,0 +1,77 @@
+#!/bin/bash
+# tuicr-review - tuicr を起動し、終了後にレビューコメントを Claude Code へ送る
+#
+# tuicr でコードレビューし、閉じたタイミングで tuicr-prompt を使って
+# 今回付けたコメントをまとめて送信 (herdr 環境下) またはクリップボードに
+# コピー (それ以外の環境) する。tuicr 自体の引数はすべて透過する。
+
+set -euo pipefail
+
+usage() {
+    cat <<'EOF'
+Usage: tuicr-review [tuicr の引数...]
+  例: tuicr-review            （tuicr のコミット選択 UI から開始）
+      tuicr-review -w         （作業ツリーの差分）
+      tuicr-review -r main..HEAD
+
+環境変数:
+  TUICR_REVIEW_TARGET  送信先の herdr pane_id / agent 名を固定する（herdr 内でのみ使用）
+
+Exit status:
+  0  成功（コメント 0 件で何も送らなかった場合も 0）
+  1  送信・コピーに失敗
+  その他  tuicr 自体の終了コードをそのまま返す
+EOF
+}
+
+case "${1:-}" in
+    -h|--help)
+        usage
+        exit 0
+        ;;
+esac
+
+if ! command -v tuicr >/dev/null 2>&1; then
+    echo "tuicr not found" >&2
+    exit 1
+fi
+
+PROMPT_BIN="$(cd "$(dirname "$0")" && pwd)/tuicr-prompt"
+if [ ! -x "$PROMPT_BIN" ]; then
+    echo "$PROMPT_BIN not found or not executable" >&2
+    exit 1
+fi
+
+START=$(date +%s)
+
+status=0
+tuicr "$@" || status=$?
+if [ "$status" -ne 0 ]; then
+    exit "$status"
+fi
+
+mode=()
+if [ "${HERDR_ENV:-}" = "1" ]; then
+    if [ -n "${TUICR_REVIEW_TARGET:-}" ]; then
+        mode+=(--send "$TUICR_REVIEW_TARGET")
+    else
+        mode+=(--send)
+    fi
+else
+    mode+=(--copy)
+fi
+
+rc=0
+msg="$("$PROMPT_BIN" --since "$START" "${mode[@]}" 2>&1)" || rc=$?
+
+if [ "${HERDR_ENV:-}" = "1" ] && command -v herdr >/dev/null 2>&1; then
+    body="$(printf '%s\n' "$msg" | tail -n 1)"
+    herdr notification show "tuicr review" --body "$body" >/dev/null 2>&1 || true
+else
+    printf '%s\n' "$msg" >&2
+fi
+
+if [ "$rc" -eq 0 ] || [ "$rc" -eq 3 ]; then
+    exit 0
+fi
+exit 1
