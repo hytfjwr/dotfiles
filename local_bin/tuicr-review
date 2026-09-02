@@ -4,6 +4,10 @@
 # tuicr でコードレビューし、閉じたタイミングで tuicr-prompt を使って
 # 今回付けたコメントをまとめて送信 (herdr 環境下) またはクリップボードに
 # コピー (それ以外の環境) する。tuicr 自体の引数はすべて透過する。
+#
+# herdr の popup はペインの起動時ディレクトリ (cwd) で開く仕様のため、worktree
+# で作業していても popup はメインチェックアウトで開いてしまう。これを補正する
+# ため、起動時にフォーカス中の Claude ペインの現在ディレクトリへ移動する。
 
 set -euo pipefail
 
@@ -15,7 +19,8 @@ Usage: tuicr-review [tuicr の引数...]
       tuicr-review -r main..HEAD
 
 環境変数:
-  TUICR_REVIEW_TARGET  送信先の herdr pane_id / agent 名を固定する（herdr 内でのみ使用）
+  TUICR_REVIEW_TARGET     送信先の herdr pane_id / agent 名を固定する（herdr 内でのみ使用）
+  TUICR_REVIEW_NO_FOLLOW  1 にすると、フォーカス中ペインの作業ディレクトリへ移動しない
 
 Exit status:
   0  成功（コメント 0 件で何も送らなかった場合も 0）
@@ -40,6 +45,38 @@ PROMPT_BIN="$(cd "$(dirname "$0")" && pwd)/tuicr-prompt"
 if [ ! -x "$PROMPT_BIN" ]; then
     echo "$PROMPT_BIN not found or not executable" >&2
     exit 1
+fi
+
+# 起動時コンテキストの解決: フォーカス中の Claude ペインを 1 回だけ調べ、
+# 送信先ヒント (TUICR_TARGET_HINT) を設定し、必要なら現在ディレクトリを
+# そのペインの foreground_cwd (worktree) へ合わせる。
+if [ "${HERDR_ENV:-}" = "1" ] && command -v herdr >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
+    list_json="$(herdr agent list 2>/dev/null)" || list_json=""
+    focus_row=""
+    if [ -n "$list_json" ]; then
+        # shellcheck disable=SC2016
+        focus_row="$(printf '%s' "$list_json" | jq -r '
+            .result.agents[] | select(.agent == "claude" and .focused == true)
+            | [.pane_id, (.foreground_cwd // "")] | @tsv
+        ' 2>/dev/null | head -n 1)" || focus_row=""
+    fi
+
+    if [ -n "$focus_row" ]; then
+        focus_pane="$(printf '%s' "$focus_row" | cut -f1)"
+        focus_cwd="$(printf '%s' "$focus_row" | cut -f2)"
+
+        if [ -z "${TUICR_REVIEW_TARGET:-}" ]; then
+            export TUICR_TARGET_HINT="$focus_pane"
+        fi
+
+        if [ "${TUICR_REVIEW_NO_FOLLOW:-}" != "1" ] \
+            && [ -n "$focus_cwd" ] \
+            && [ -d "$focus_cwd" ] \
+            && [ "$focus_cwd" != "$PWD" ] \
+            && git -C "$focus_cwd" rev-parse --show-toplevel >/dev/null 2>&1; then
+            cd "$focus_cwd"
+        fi
+    fi
 fi
 
 START=$(date +%s)

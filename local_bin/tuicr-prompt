@@ -27,6 +27,10 @@ Options:
   --send [TARGET]     クリップボードにコピーしたうえで herdr agent prompt で Claude Code ペインに送る
                       TARGET 省略時は herdr agent list から自動選択（複数候補は fzf）
 
+環境変数:
+  TUICR_TARGET_HINT      送信先ペインの候補（tuicr-review が起動時のフォーカスから設定する）
+  TUICR_AGENT_LIST_JSON  herdr agent list の代わりに読む JSON ファイル（テスト用）
+
 Exit status:
   0  成功
   1  実行エラー（依存コマンド無し、tuicr/herdr の失敗、送信先が見つからない）
@@ -48,47 +52,112 @@ tty_available() {
     [ -e /dev/tty ] && ( : < /dev/tty ) 2>/dev/null
 }
 
+# rows (TSV: pane_id, focused, foreground_cwd, terminal_title_stripped) を
+# 標準入力から受け取り、1 行ならその pane_id、複数行で focused == true が
+# ちょうど 1 行ならその pane_id を出力する。確定できなければ何も出力しない
+# (呼び出し側で fzf に進む)。
+resolve_from_rows() {
+    local rows n focused_rows focused_n
+    rows="$(cat)"
+    if [ -z "$rows" ]; then
+        return
+    fi
+    n="$(printf '%s\n' "$rows" | wc -l | tr -d ' ')"
+    if [ "$n" -eq 1 ]; then
+        printf '%s\n' "$rows" | cut -f1
+        return
+    fi
+    focused_rows="$(printf '%s\n' "$rows" | awk -F'\t' '$2 == "true"')"
+    if [ -z "$focused_rows" ]; then
+        return
+    fi
+    focused_n="$(printf '%s\n' "$focused_rows" | wc -l | tr -d ' ')"
+    if [ "$focused_n" -eq 1 ]; then
+        printf '%s\n' "$focused_rows" | cut -f1
+    fi
+}
+
 # herdr agent list からこのリポジトリで動いている Claude ペインを選ぶ
 #
-# foreground_cwd がリポジトリ配下のペインを優先し、無ければ cwd で絞り、
-# それも無ければ全 claude ペインを候補にする。1 件なら即決、複数件で
-# focused なペインがちょうど 1 つならそれ、それ以外は fzf に選ばせる。
+# 候補集合は「foreground_cwd が ROOT 配下」「cwd が ROOT 配下」「同一
+# リポジトリの他ワークツリー配下 (foreground_cwd または cwd)」「全 claude
+# ペイン」の順で最初に空でないものを採用する (tier をまたいで混ぜない)。
+# TUICR_TARGET_HINT が生きているペインを指していればそれを最優先で使う。
+# 採用した候補集合が 1 件ならそれ、複数件で focused なペインがちょうど 1 つ
+# ならそれ、それ以外は fzf に選ばせる。
 select_target() {
-    local list_json rows n focused_rows focused_n chosen
+    local list_json rows chosen hint_match worktree_roots
 
-    if ! list_json="$(herdr agent list)"; then
+    if [ -n "${TUICR_AGENT_LIST_JSON:-}" ] && [ -f "$TUICR_AGENT_LIST_JSON" ]; then
+        list_json="$(cat "$TUICR_AGENT_LIST_JSON")"
+    elif ! list_json="$(herdr agent list)"; then
         echo "herdr agent list failed" >&2
         exit 1
     fi
 
+    # tier0: TUICR_TARGET_HINT が生きている claude ペインを指していれば即採用
+    if [ -n "${TUICR_TARGET_HINT:-}" ]; then
+        # shellcheck disable=SC2016
+        hint_match="$(printf '%s' "$list_json" | jq -r --arg hint "$TUICR_TARGET_HINT" '
+[ .result.agents[] | select(.agent == "claude" and .pane_id == $hint) ] | length
+')"
+        if [ "$hint_match" -gt 0 ]; then
+            printf '%s\n' "$TUICR_TARGET_HINT"
+            return
+        fi
+    fi
+
+    # 候補集合1: foreground_cwd が ROOT 配下
     # shellcheck disable=SC2016
     rows="$(printf '%s' "$list_json" | jq -r --arg root "$ROOT" '
 def under($r): . == $r or startswith($r + "/");
-[ .result.agents[] | select(.agent == "claude") ] as $all
-| ([ $all[] | select((.foreground_cwd // "") | under($root)) ]) as $fg
-| ([ $all[] | select((.cwd // "") | under($root)) ]) as $cwd
-| (if ($fg | length) > 0 then $fg elif ($cwd | length) > 0 then $cwd else $all end)
+[ .result.agents[] | select(.agent == "claude" and ((.foreground_cwd // "") | under($root))) ]
 | .[] | [ .pane_id, (.focused | tostring), (.foreground_cwd // ""), (.terminal_title_stripped // "") ] | @tsv
 ')"
+
+    # 候補集合2: cwd が ROOT 配下
+    if [ -z "$rows" ]; then
+        # shellcheck disable=SC2016
+        rows="$(printf '%s' "$list_json" | jq -r --arg root "$ROOT" '
+def under($r): . == $r or startswith($r + "/");
+[ .result.agents[] | select(.agent == "claude" and ((.cwd // "") | under($root))) ]
+| .[] | [ .pane_id, (.focused | tostring), (.foreground_cwd // ""), (.terminal_title_stripped // "") ] | @tsv
+')"
+    fi
+
+    # 候補集合3: 同一リポジトリの他ワークツリー配下 (foreground_cwd または cwd)
+    # git worktree list が失敗する (git 管理外) 場合はこの段をスキップする
+    if [ -z "$rows" ]; then
+        worktree_roots="$(git -C "$ROOT" worktree list --porcelain 2>/dev/null | sed -n 's/^worktree //p')" || worktree_roots=""
+        if [ -n "$worktree_roots" ]; then
+            # shellcheck disable=SC2016
+            rows="$(printf '%s' "$list_json" | jq -r --arg roots "$worktree_roots" '
+def under($x; $r): ($x == $r) or ($x | startswith($r + "/"));
+def under_any($x; $rs): any($rs[]; under($x; .));
+($roots | split("\n") | map(select(. != ""))) as $wt
+| [ .result.agents[] | select(.agent == "claude" and (under_any(.foreground_cwd // ""; $wt) or under_any(.cwd // ""; $wt))) ]
+| .[] | [ .pane_id, (.focused | tostring), (.foreground_cwd // ""), (.terminal_title_stripped // "") ] | @tsv
+')"
+        fi
+    fi
+
+    # 候補集合4: 全 claude ペイン
+    if [ -z "$rows" ]; then
+        # shellcheck disable=SC2016
+        rows="$(printf '%s' "$list_json" | jq -r '
+[ .result.agents[] | select(.agent == "claude") ]
+| .[] | [ .pane_id, (.focused | tostring), (.foreground_cwd // ""), (.terminal_title_stripped // "") ] | @tsv
+')"
+    fi
 
     if [ -z "$rows" ]; then
         echo "no Claude pane found in herdr" >&2
         exit 1
     fi
 
-    n="$(printf '%s\n' "$rows" | wc -l | tr -d ' ')"
-    if [ "$n" -eq 1 ]; then
-        printf '%s\n' "$rows" | cut -f1
-        return
-    fi
-
-    focused_rows="$(printf '%s\n' "$rows" | awk -F'\t' '$2 == "true"')"
-    focused_n=0
-    if [ -n "$focused_rows" ]; then
-        focused_n="$(printf '%s\n' "$focused_rows" | wc -l | tr -d ' ')"
-    fi
-    if [ "$focused_n" -eq 1 ]; then
-        printf '%s\n' "$focused_rows" | cut -f1
+    chosen="$(printf '%s\n' "$rows" | resolve_from_rows)"
+    if [ -n "$chosen" ]; then
+        printf '%s\n' "$chosen"
         return
     fi
 
