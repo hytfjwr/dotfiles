@@ -1,0 +1,570 @@
+#!/bin/bash
+# cw-herdr - herdr の新しいワークスペースで claude-worktree (cw) を起動する
+#
+# herdr CLI でワークスペースを作り、その root pane に cw
+# (bunx @hytfjwr/claude-worktree) を投入し、別ブランチの git worktree で
+# Claude Code が起動したことを確認して JSON で結果を返す。
+# claude/skills/cw-herdr/SKILL.md から呼ばれることを想定しているが単独でも使える。
+
+set -euo pipefail
+
+usage() {
+    cat <<'EOF'
+Usage: cw-herdr [options] <branch> (<prompt> | --plan FILE)
+
+Options:
+  --plan FILE         プロンプトをファイルから読む（<prompt> と排他）。このファイルは削除しない
+  --base REF          worktree の基点ブランチ（既定: メインリポジトリのデフォルトブランチ）
+  --label TEXT        herdr workspace のラベル（既定: <repo>/<branch>）
+  --focus             作成した workspace にフォーカスを移す（既定: 移さない）
+  --no-danger         cw に -d を付けない（既定: -d 付き = --dangerously-skip-permissions）
+  --merge | --draft | --pr   cw の同名オプションを渡す（互いに排他）
+  --pull              cw の -pull を渡す
+  --model NAME        cw の -model NAME を渡す
+  --timeout SEC       Claude の起動確認を待つ秒数（既定: 300）
+  -n, --dry-run       herdr に触らず、解決結果と cw コマンドを JSON で出して終了
+  -h, --help          このヘルプを表示する
+
+環境変数:
+  CW_HERDR_CW_CMD         cw の起動コマンド（既定: "bunx @hytfjwr/claude-worktree"。テスト用に差し替える）
+  CW_HERDR_POLL_INTERVAL  起動確認のポーリング間隔秒（既定: 2）
+
+Exit status:
+  0  成功
+  1  実行エラー（依存コマンド無し、herdr API の失敗、シェルの準備待ちタイムアウト）
+  2  引数エラー
+  3  herdr サーバーが動いていない
+  4  cw を投入したが timeout 内に Claude の起動を確認できなかった、または cw がエラー終了した（workspace は残す）
+  5  git の前提エラー（リポジトリ外、base が無い、ブランチ名不正、デフォルトブランチを解決できない）
+EOF
+}
+
+# 依存コマンドが無ければ exit 1 で止める
+require_cmd() {
+    if ! command -v "$1" >/dev/null 2>&1; then
+        echo "cw-herdr: $1 not found" >&2
+        exit 1
+    fi
+}
+
+# 指定した exit code でメッセージを標準エラーに出して終了する
+die() {
+    local code="$1"
+    shift
+    echo "cw-herdr: $*" >&2
+    exit "$code"
+}
+
+# メインリポジトリの root を出力する。worktree の中から呼ばれても常に
+# メインリポジトリの root を返す。リポジトリ外なら非 0 を返す
+resolve_repo_root() {
+    local common root
+    common="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || return 1
+    root="$(dirname "$common")"
+    if [ "$(git -C "$root" rev-parse --show-toplevel 2>/dev/null)" != "$root" ]; then
+        root="$(git rev-parse --show-toplevel 2>/dev/null)" || return 1
+    fi
+    printf '%s\n' "$root"
+}
+
+# base ブランチ名を解決して出力する。存在確認まで含め、解決できなければ非 0 を返す
+resolve_base() {
+    local root="$1" candidate origin_base
+
+    if [ -n "$BASE_ARG" ]; then
+        candidate="$BASE_ARG"
+    else
+        origin_base="$(git -C "$root" symbolic-ref -q --short refs/remotes/origin/HEAD 2>/dev/null)" || origin_base=""
+        if [ -n "$origin_base" ]; then
+            candidate="${origin_base#origin/}"
+        elif git -C "$root" show-ref --verify --quiet refs/heads/main; then
+            candidate="main"
+        else
+            candidate="master"
+        fi
+    fi
+
+    if ! git -C "$root" show-ref --verify --quiet "refs/heads/$candidate"; then
+        return 1
+    fi
+    printf '%s\n' "$candidate"
+}
+
+# ブランチ名が git の参照名として妥当か
+validate_branch() {
+    git check-ref-format --branch "$1" >/dev/null 2>&1
+}
+
+# ブランチ名から worktree の作成先パスを出力する
+worktree_path_for() {
+    local name="$1"
+    printf '%s\n' "$(dirname "$ROOT")/${REPO_NAME}-worktrees/${name//\//-}"
+}
+
+# ブランチ名がローカル/リモートブランチまたは worktree パスとして既に使われているか
+branch_taken() {
+    local name="$1"
+    if git -C "$ROOT" show-ref --verify --quiet "refs/heads/$name"; then
+        return 0
+    fi
+    if git -C "$ROOT" show-ref --verify --quiet "refs/remotes/origin/$name"; then
+        return 0
+    fi
+    if [ -e "$(worktree_path_for "$name")" ]; then
+        return 0
+    fi
+    return 1
+}
+
+# 衝突しないブランチ名を解決して出力する。<name>-2 ... <name>-99 まで試す
+resolve_branch() {
+    local requested="$1" candidate i
+
+    if ! branch_taken "$requested"; then
+        printf '%s\n' "$requested"
+        return 0
+    fi
+
+    i=2
+    while [ "$i" -le 99 ]; do
+        candidate="${requested}-${i}"
+        if ! branch_taken "$candidate"; then
+            echo "cw-herdr: branch renamed: $requested -> $candidate" >&2
+            printf '%s\n' "$candidate"
+            return 0
+        fi
+        i=$((i + 1))
+    done
+    return 1
+}
+
+# pane がシェルのプロンプトで待っている状態か
+# (foreground_processes がちょうど 1 要素で、その argv0 がシェルのもの)
+shell_is_ready() {
+    local pane="$1" info count argv0
+    info="$(herdr pane process-info --pane "$pane" 2>/dev/null)" || return 1
+    count="$(printf '%s' "$info" | jq -r '.result.process_info.foreground_processes | length')"
+    if [ "$count" != "1" ]; then
+        return 1
+    fi
+    argv0="$(printf '%s' "$info" | jq -r '.result.process_info.foreground_processes[0].argv0')"
+    case "$argv0" in
+        zsh | bash | sh | fish) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+# pane のシェルがプロンプトで待っている状態になるまで最大 15 秒待つ
+wait_shell_ready() {
+    local pane="$1" i=0
+    while [ "$i" -lt 30 ]; do
+        if shell_is_ready "$pane"; then
+            return 0
+        fi
+        sleep 0.5
+        i=$((i + 1))
+    done
+    return 1
+}
+
+# 失敗しても致命的にせず、pane の直近の出力を標準エラーに流す
+dump_pane_output() {
+    local pane="$1"
+    # herdr pane read は JSON ではなくプレーンテキストを返す
+    herdr pane read "$pane" --source recent-unwrapped --lines 60 2>/dev/null >&2 || true
+}
+
+# Claude の起動を待つ。成功時は経過秒数を標準出力に出して return 0。
+# cw がエラー終了したと判断したら return 1。timeout したら return 2
+wait_claude() {
+    local pane="$1" timeout="$2" elapsed=0 i=0
+
+    # cw が前景になる (シェル単体でなくなる) のを最大 10 秒待つ。
+    # 変わらなくても後続のポーリングへ進む
+    while [ "$i" -lt 20 ]; do
+        if ! shell_is_ready "$pane"; then
+            break
+        fi
+        sleep 0.5
+        i=$((i + 1))
+    done
+
+    while [ "$elapsed" -lt "$timeout" ]; do
+        if herdr agent list 2>/dev/null | jq -e --arg p "$pane" \
+            '.result.agents[] | select(.pane_id == $p and .agent == "claude")' >/dev/null 2>&1; then
+            printf '%s\n' "$elapsed"
+            return 0
+        fi
+        if shell_is_ready "$pane"; then
+            return 1
+        fi
+        sleep "$CW_HERDR_POLL_INTERVAL"
+        elapsed=$((elapsed + CW_HERDR_POLL_INTERVAL))
+    done
+    return 2
+}
+
+BRANCH=""
+PROMPT=""
+PROMPT_SET=false
+PLAN_ARG=""
+BASE_ARG=""
+LABEL_ARG=""
+FOCUS=false
+NO_DANGER=false
+MODE=""
+MODE_COUNT=0
+PULL=false
+MODEL_ARG=""
+TIMEOUT_ARG=""
+TIMEOUT=300
+DRY_RUN=false
+POS_COUNT=0
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --plan)
+            if [ $# -lt 2 ]; then
+                echo "cw-herdr: option $1 requires a value" >&2
+                exit 2
+            fi
+            PLAN_ARG="$2"
+            shift 2
+            ;;
+        --base)
+            if [ $# -lt 2 ]; then
+                echo "cw-herdr: option $1 requires a value" >&2
+                exit 2
+            fi
+            BASE_ARG="$2"
+            shift 2
+            ;;
+        --label)
+            if [ $# -lt 2 ]; then
+                echo "cw-herdr: option $1 requires a value" >&2
+                exit 2
+            fi
+            LABEL_ARG="$2"
+            shift 2
+            ;;
+        --focus)
+            FOCUS=true
+            shift
+            ;;
+        --no-danger)
+            NO_DANGER=true
+            shift
+            ;;
+        --merge)
+            MODE="merge"
+            MODE_COUNT=$((MODE_COUNT + 1))
+            shift
+            ;;
+        --draft)
+            MODE="draft"
+            MODE_COUNT=$((MODE_COUNT + 1))
+            shift
+            ;;
+        --pr)
+            MODE="pr"
+            MODE_COUNT=$((MODE_COUNT + 1))
+            shift
+            ;;
+        --pull)
+            PULL=true
+            shift
+            ;;
+        --model)
+            if [ $# -lt 2 ]; then
+                echo "cw-herdr: option $1 requires a value" >&2
+                exit 2
+            fi
+            MODEL_ARG="$2"
+            shift 2
+            ;;
+        --timeout)
+            if [ $# -lt 2 ]; then
+                echo "cw-herdr: option $1 requires a value" >&2
+                exit 2
+            fi
+            TIMEOUT_ARG="$2"
+            shift 2
+            ;;
+        -n | --dry-run)
+            DRY_RUN=true
+            shift
+            ;;
+        -h | --help)
+            usage
+            exit 0
+            ;;
+        -*)
+            echo "cw-herdr: unknown option: $1" >&2
+            usage >&2
+            exit 2
+            ;;
+        *)
+            POS_COUNT=$((POS_COUNT + 1))
+            if [ "$POS_COUNT" -eq 1 ]; then
+                BRANCH="$1"
+            elif [ "$POS_COUNT" -eq 2 ]; then
+                PROMPT="$1"
+                PROMPT_SET=true
+            else
+                echo "cw-herdr: too many positional arguments: $1" >&2
+                exit 2
+            fi
+            shift
+            ;;
+    esac
+done
+
+if [ "$MODE_COUNT" -gt 1 ]; then
+    echo "cw-herdr: --merge, --draft, --pr are mutually exclusive" >&2
+    exit 2
+fi
+
+if [ -z "$BRANCH" ]; then
+    echo "cw-herdr: <branch> is required" >&2
+    exit 2
+fi
+
+if [ "$PROMPT_SET" = true ] && [ -n "$PLAN_ARG" ]; then
+    echo "cw-herdr: <prompt> and --plan are mutually exclusive" >&2
+    exit 2
+fi
+if [ "$PROMPT_SET" = false ] && [ -z "$PLAN_ARG" ]; then
+    echo "cw-herdr: either <prompt> or --plan is required" >&2
+    exit 2
+fi
+if [ "$PROMPT_SET" = true ] && [ -z "$PROMPT" ]; then
+    echo "cw-herdr: <prompt> must not be empty" >&2
+    exit 2
+fi
+
+if [ -n "$PLAN_ARG" ] && [ ! -f "$PLAN_ARG" ]; then
+    echo "cw-herdr: --plan file not found: $PLAN_ARG" >&2
+    exit 2
+fi
+
+if [ -n "$TIMEOUT_ARG" ]; then
+    case "$TIMEOUT_ARG" in
+        '' | *[!0-9]*)
+            echo "cw-herdr: invalid --timeout: $TIMEOUT_ARG" >&2
+            exit 2
+            ;;
+    esac
+    if [ "$TIMEOUT_ARG" -le 0 ]; then
+        echo "cw-herdr: invalid --timeout: $TIMEOUT_ARG" >&2
+        exit 2
+    fi
+    TIMEOUT="$TIMEOUT_ARG"
+fi
+
+require_cmd git
+require_cmd jq
+
+CW_HERDR_CW_CMD="${CW_HERDR_CW_CMD:-bunx @hytfjwr/claude-worktree}"
+CW_HERDR_POLL_INTERVAL="${CW_HERDR_POLL_INTERVAL:-2}"
+read -r -a cw_words <<<"$CW_HERDR_CW_CMD"
+
+if [ "$DRY_RUN" = false ]; then
+    require_cmd herdr
+    require_cmd "${cw_words[0]}"
+fi
+
+if ! ROOT="$(resolve_repo_root)"; then
+    die 5 "not in a git repository: $PWD"
+fi
+REPO_NAME="$(basename "$ROOT")"
+echo "cw-herdr: repo: $ROOT" >&2
+
+if ! BASE="$(resolve_base "$ROOT")"; then
+    die 5 "could not resolve base branch (specify one with --base)"
+fi
+echo "cw-herdr: base: $BASE" >&2
+
+if ! validate_branch "$BRANCH"; then
+    die 5 "invalid branch name: $BRANCH"
+fi
+
+REQUESTED_BRANCH="$BRANCH"
+if ! BRANCH="$(resolve_branch "$BRANCH")"; then
+    die 5 "could not find an available branch name for $REQUESTED_BRANCH (tried up to -99)"
+fi
+echo "cw-herdr: branch: $BRANCH" >&2
+
+WORKTREE_PATH="$(worktree_path_for "$BRANCH")"
+
+if [ -n "$LABEL_ARG" ]; then
+    LABEL="$LABEL_ARG"
+else
+    LABEL="${REPO_NAME}/${BRANCH}"
+fi
+
+# プロンプトの用意
+PLAN_OWNED=false
+if [ -n "$PLAN_ARG" ]; then
+    PLAN_FILE="$PLAN_ARG"
+elif [ "$DRY_RUN" = true ]; then
+    PLAN_FILE="TEMP_PLAN_FILE"
+else
+    PLAN_FILE="$(mktemp "${TMPDIR:-/tmp}/cw-herdr-XXXXXX")"
+    printf '%s\n' "$PROMPT" >"$PLAN_FILE"
+    PLAN_OWNED=true
+fi
+
+# 出力 JSON の plan_file: 成功時は常に null、dry-run では --plan のパスか null
+if [ -n "$PLAN_ARG" ]; then
+    PLAN_FILE_REPORT="$PLAN_ARG"
+else
+    PLAN_FILE_REPORT=""
+fi
+
+# cw コマンドの組み立て
+cmd=("${cw_words[@]}" "$BRANCH" -plan "$PLAN_FILE" -base "$BASE")
+if [ "$NO_DANGER" = false ]; then
+    cmd+=(-d)
+fi
+case "$MODE" in
+    merge) cmd+=(-merge) ;;
+    draft) cmd+=(-draft) ;;
+    pr) cmd+=(-pr) ;;
+esac
+if [ "$PULL" = true ]; then
+    cmd+=(-pull)
+fi
+if [ -n "$MODEL_ARG" ]; then
+    cmd+=(-model "$MODEL_ARG")
+fi
+
+cmd_string="$(printf '%q ' "${cmd[@]}")"
+cmd_string="${cmd_string% }"
+
+if [ "$DRY_RUN" = true ]; then
+    jq -n -c \
+        --arg repo_root "$ROOT" \
+        --arg repo_name "$REPO_NAME" \
+        --arg branch "$BRANCH" \
+        --arg requested_branch "$REQUESTED_BRANCH" \
+        --arg base "$BASE" \
+        --arg worktree_path "$WORKTREE_PATH" \
+        --arg label "$LABEL" \
+        --arg cw_command "$cmd_string" \
+        --arg plan_file "$PLAN_FILE_REPORT" \
+        '{
+            dry_run: true,
+            repo_root: $repo_root,
+            repo_name: $repo_name,
+            branch: $branch,
+            requested_branch: $requested_branch,
+            base: $base,
+            worktree_path: $worktree_path,
+            label: $label,
+            cw_command: $cw_command,
+            workspace_id: null,
+            workspace_number: null,
+            tab_id: null,
+            pane_id: null,
+            plan_file: (if $plan_file == "" then null else $plan_file end)
+        }'
+    exit 0
+fi
+
+if ! herdr workspace list >/dev/null 2>&1; then
+    die 3 "herdr server is not running"
+fi
+
+if [ "$FOCUS" = true ]; then
+    focus_flag="--focus"
+else
+    focus_flag="--no-focus"
+fi
+
+if ! created="$(herdr workspace create --cwd "$ROOT" --label "$LABEL" "$focus_flag")"; then
+    die 1 "herdr workspace create failed"
+fi
+
+workspace_id="$(printf '%s' "$created" | jq -r '.result.workspace.workspace_id // empty')"
+if [ -z "$workspace_id" ]; then
+    printf '%s\n' "$created" >&2
+    die 1 "herdr workspace create returned no workspace_id"
+fi
+pane_id="$(printf '%s' "$created" | jq -r '.result.root_pane.pane_id // empty')"
+if [ -z "$pane_id" ]; then
+    printf '%s\n' "$created" >&2
+    die 1 "herdr workspace create returned no pane_id"
+fi
+tab_id="$(printf '%s' "$created" | jq -r '.result.tab.tab_id // empty')"
+if [ -z "$tab_id" ]; then
+    printf '%s\n' "$created" >&2
+    die 1 "herdr workspace create returned no tab_id"
+fi
+workspace_number="$(printf '%s' "$created" | jq '.result.workspace.number // null')"
+
+echo "cw-herdr: workspace created: $workspace_id (pane $pane_id)" >&2
+
+if ! wait_shell_ready "$pane_id"; then
+    die 1 "shell not ready in pane $pane_id (workspace $workspace_id) within 15s"
+fi
+
+if ! herdr pane run "$pane_id" "$cmd_string" >/dev/null; then
+    die 1 "herdr pane run failed for pane $pane_id (workspace $workspace_id)"
+fi
+echo "cw-herdr: cw launched" >&2
+
+if elapsed_output="$(wait_claude "$pane_id" "$TIMEOUT")"; then
+    wait_status=0
+else
+    wait_status=$?
+fi
+
+if [ "$wait_status" -ne 0 ]; then
+    if [ "$wait_status" -eq 1 ]; then
+        echo "cw-herdr: cw exited before Claude was detected (workspace $workspace_id, pane $pane_id)" >&2
+    else
+        echo "cw-herdr: timed out waiting for Claude after ${TIMEOUT}s (workspace $workspace_id, pane $pane_id)" >&2
+    fi
+    dump_pane_output "$pane_id"
+    if [ "$PLAN_OWNED" = true ]; then
+        echo "cw-herdr: plan file kept at $PLAN_FILE" >&2
+    fi
+    exit 4
+fi
+
+echo "cw-herdr: claude detected after ${elapsed_output}s" >&2
+
+if [ "$PLAN_OWNED" = true ]; then
+    rm -f "$PLAN_FILE"
+fi
+
+jq -n -c \
+    --arg repo_root "$ROOT" \
+    --arg repo_name "$REPO_NAME" \
+    --arg branch "$BRANCH" \
+    --arg requested_branch "$REQUESTED_BRANCH" \
+    --arg base "$BASE" \
+    --arg worktree_path "$WORKTREE_PATH" \
+    --arg label "$LABEL" \
+    --arg cw_command "$cmd_string" \
+    --arg workspace_id "$workspace_id" \
+    --argjson workspace_number "$workspace_number" \
+    --arg tab_id "$tab_id" \
+    --arg pane_id "$pane_id" \
+    '{
+        dry_run: false,
+        repo_root: $repo_root,
+        repo_name: $repo_name,
+        branch: $branch,
+        requested_branch: $requested_branch,
+        base: $base,
+        worktree_path: $worktree_path,
+        label: $label,
+        cw_command: $cw_command,
+        workspace_id: $workspace_id,
+        workspace_number: $workspace_number,
+        tab_id: $tab_id,
+        pane_id: $pane_id,
+        plan_file: null
+    }'
+exit 0
