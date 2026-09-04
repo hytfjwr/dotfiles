@@ -62,7 +62,6 @@ LINKS=(
     "local_bin/claude-session-bridge|$HOME/.local/bin/claude-session-bridge"
     "local_bin/tuicr-prompt|$HOME/.local/bin/tuicr-prompt"
     "local_bin/tuicr-review|$HOME/.local/bin/tuicr-review"
-    "local_bin/cw-herdr|$HOME/.local/bin/cw-herdr"
 
     # Codex
     "codex/config.toml|$HOME/.codex/config.toml"
