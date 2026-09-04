@@ -2,6 +2,7 @@ config-version = 2
 after-startup-command = [
   'exec-and-forget $HOME/.local/bin/aerospace-fix-windows --quiet',
   'layout --workspace C --root h_tiles',
+  'layout --workspace 4 --root h_tiles',
 ]
 exec-on-workspace-change = [
   '/bin/bash',
