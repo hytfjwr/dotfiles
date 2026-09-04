@@ -4,19 +4,19 @@
     {
       "id": 1,
       "prompt": "いまの作業とは別で、models/staging/stg_orders.sql の重複行を除くタスクを cw で召喚して並行で進めたい。PR まで作ってほしい。原因は customer_id が NULL の行が join で増えてること。",
-      "expected_output": "fix/ 系のブランチ名を自動生成し、自己完結したプロンプト（目的・背景・完了条件・注意）を書き、cw-herdr を --pr 付きで 1 回呼ぶ。成功 JSON から workspace 番号・ラベル・ブランチ・worktree パスを報告し、完了待ちはしない。",
+      "expected_output": "fix/ 系のブランチ名を自動生成し、メインリポジトリの root と base（デフォルトブランチ）を解決し、自己完結したプロンプト（目的・背景・完了条件・注意）をファイルに書く。CLAUDE_WORKTREE_BACKEND=herdr を付けて bunx @hytfjwr/claude-worktree を -plan / -base / -pane / -json / -d / -pr で 1 回呼ぶ。JSON の paneId で Claude の起動を確認し、workspace 番号・ラベル・ブランチ・worktree パスを報告して完了待ちはしない。",
       "files": []
     },
     {
       "id": 2,
       "prompt": "別ワークスペースで Claude 起こして、README のセットアップ手順を今の Makefile のターゲットに合わせて直させて。develop から切って。",
-      "expected_output": "docs/ 系のブランチ名で cw-herdr を --base develop 付きで呼ぶ。プロンプトに README.md と Makefile のパスを含める。フォーカスは移さない。",
+      "expected_output": "docs/ 系のブランチ名で cw を -base develop 付きで呼ぶ。プロンプトに README.md と Makefile のパスを含める。フォーカスは移さない（herdr workspace focus は実行しない）。",
       "files": []
     },
     {
       "id": 3,
       "prompt": "このリポジトリの shellcheck 警告を全部潰す作業を別の Claude に投げたい。権限確認ありでお願い。",
-      "expected_output": "chore/ か fix/ 系のブランチ名で cw-herdr を --no-danger 付きで呼ぶ。make lint で確認する旨を完了条件に入れる。",
+      "expected_output": "chore/ か fix/ 系のブランチ名で cw を -d 無しで呼ぶ。make lint で確認する旨を完了条件に入れ、-d が無いので召喚先で信頼確認に答える必要があることを伝える。",
       "files": []
     }
   ]
