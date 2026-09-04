@@ -1,6 +1,7 @@
 config-version = 2
 after-startup-command = [
   'exec-and-forget $HOME/.local/bin/aerospace-fix-windows --quiet',
+  'layout --workspace C --root h_tiles',
 ]
 exec-on-workspace-change = [
   '/bin/bash',
@@ -239,6 +240,11 @@ run = 'move-node-to-workspace S'
 # Claude -> Workspace C
 [[on-window-detected]]
 if.app-id = 'com.anthropic.claudefordesktop'
+run = 'move-node-to-workspace C'
+
+# ChatGPT (Codex) -> Workspace C
+[[on-window-detected]]
+if.app-id = 'com.openai.codex'
 run = 'move-node-to-workspace C'
 
 # Spotify -> Workspace M (MacBook built-in display)

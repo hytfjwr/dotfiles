@@ -61,6 +61,8 @@ get_target_workspace() {
         com.tinyspeck.slackmacgap) echo "S" ;;
         # Claude -> Workspace C
         com.anthropic.claudefordesktop) echo "C" ;;
+        # ChatGPT (Codex) -> Workspace C
+        com.openai.codex)          echo "C" ;;
         # Spotify -> Workspace M
         com.spotify.client)        echo "M" ;;
         # Linear -> Workspace L
