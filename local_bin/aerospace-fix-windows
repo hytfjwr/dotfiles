@@ -49,6 +49,7 @@ get_target_workspace() {
         com.microsoft.VSCode)      echo "2" ;;
         # Web Browsers -> Workspace 3
         company.thebrowser.Browser) echo "3" ;;  # Arc
+        company.thebrowser.dia)   echo "3" ;;  # Dia
         com.google.Chrome)         echo "3" ;;
         # Database Tools -> Workspace 4
         com.sequel-ace.sequel-ace) echo "4" ;;  # Sequel Ace
