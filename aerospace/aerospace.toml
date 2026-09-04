@@ -206,6 +206,10 @@ if.app-id = 'company.thebrowser.Browser' # Arc
 run = 'move-node-to-workspace 3'
 
 [[on-window-detected]]
+if.app-id = 'company.thebrowser.dia' # Dia
+run = 'move-node-to-workspace 3'
+
+[[on-window-detected]]
 if.app-id = 'com.google.Chrome'
 run = 'move-node-to-workspace 3'
 
