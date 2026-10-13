@@ -2,6 +2,7 @@
 local wezterm = require("wezterm")
 local claude_usage = require("claude_usage")
 local agent = require("agent")
+local workspace_save = require("workspace_save")
 
 local M = {}
 
@@ -45,6 +46,7 @@ function M.setup(config)
 			},
 			tabline_x = {
 				agent.status_component,
+				workspace_save.component,
 				claude_usage.component,
 				"ram",
 				"cpu",
