@@ -11,7 +11,7 @@ claude-worktree（cw）v0.17.0 で herdr が `-pane` の公式バックエンド
 以前あったラッパー `~/.local/bin/cw-herdr` は廃止したので、このスキルが cw を直接叩く。
 workspace の作成・pane へのコマンド投入・失敗時のロールバックはすべて cw 側が持っているので、`herdr workspace create` と `herdr pane run` で同じことを組み立て直さない。
 
-あなたの仕事は、ブランチ名を決め、召喚先に渡すプロンプトを書き、cw を 1 回実行し、起動を確認して報告すること。
+あなたの仕事は、ブランチ名と workspace の日本語ラベルを決め、召喚先に渡すプロンプトを書き、cw を 1 回実行し、ラベルを付け替え、起動を確認して報告すること。
 
 ## 前提
 
@@ -61,6 +61,13 @@ printf 'root=%s\nbase=%s\nbranch=%s\nworktree=%s\n' "$ROOT" "$BASE" "$BRANCH" \
 - type: `feat` / `fix` / `refactor` / `chore` / `docs` / `test` のいずれか
 - slug: 英小文字・数字・ハイフンのみ、3〜5 語。日本語のタスクは英語に訳す
 - 例: 「stg_prescriptions の重複行を除く」→ `fix/stg-prescriptions-dedupe`
+
+あわせて workspace のラベルも決める。herdr のサイドバーで一目で作業内容が分かるよう、タスクを要約した日本語の名詞句にする。
+
+- 15 文字程度まで。「〜の修正」「〜の追加」のように何をするかで終える
+- コード上の識別子（テーブル名・関数名など）はそのまま使ってよい
+- ブランチ名の直訳ではなく、ユーザーが読んで分かる言い方にする
+- 例: 「stg_prescriptions の重複行を除く」→ `stg_prescriptions の重複除去`
 
 ### 3. 召喚先へのプロンプトを書く
 
@@ -125,7 +132,18 @@ cd <ROOT> && CLAUDE_WORKTREE_BACKEND=herdr bunx @hytfjwr/claude-worktree <BRANCH
 - `-merge` `-draft` `-pr` は排他
 - 何が起きるか先に確かめたいときだけ `-dry-run -json`（`-pane` は不要。herdr に触らず、同じ形の JSON を `dryRun: true` で返す）
 
-### 5. Claude が起動したか確認する
+### 5. workspace のラベルを日本語にする
+
+cw が付けるラベルは `herdr.label` テンプレート（既定 `{repo}/{branch}`）だけで、実行ごとに指定するオプションは無い。cw が返ったら、手順 2 で決めたラベルに付け替える。
+
+```bash
+herdr workspace rename <workspaceId> '<日本語ラベル>'
+```
+
+cw は workspace を ID で扱うので、ラベルを変えても `cw clean` などの後処理には影響しない。
+rename が失敗しても召喚自体は成功しているので、そのまま続けて報告で触れる。
+
+### 6. Claude が起動したか確認する
 
 cw は pane にコマンドを送った時点で返る。Claude の起動失敗までは見てくれないので確認する。
 
@@ -148,7 +166,7 @@ herdr pane read <paneId> --source recent-unwrapped --lines 60
 
 このとき workspace と worktree は残っている。閉じるかどうかはユーザーに聞く。自分の判断で閉じたり消したりしない。
 
-### 6. 結果を報告する
+### 7. 結果を報告する
 
 workspace の番号とラベルは cw の JSON に入っていないので herdr から取る。
 
@@ -180,7 +198,7 @@ cw の exit code で切り分ける。原因は stderr に出る。
 | 1 | それ以外 | メッセージをそのまま伝える |
 
 cw が途中で失敗したときは、cw 自身が worktree と herdr の workspace をロールバックする。あなたの後片付けはプロンプトのファイルを消すだけ。
-起動確認（手順 5）で見つからないケースは cw 自体は成功しているので、workspace は残る。
+起動確認（手順 6）で見つからないケースは cw 自体は成功しているので、workspace は残る。
 
 ## やらないこと
 
