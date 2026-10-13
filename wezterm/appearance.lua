@@ -23,6 +23,14 @@ function M.apply(config)
 	config.adjust_window_size_when_changing_font_size = false
 	config.use_ime = true
 
+	-- 点滅テキスト（SGR 5 / 6）。claude-statusline がゲージのアニメーションに使う。
+	-- コマンドの再実行は 1 秒が下限なので、その間のなめらかな動きは端末側の
+	-- イージング付きフェード（animation_fps で描画）に任せている。
+	config.text_blink_rate = 300
+	config.text_blink_rate_rapid = 150
+	config.text_blink_ease_in = "EaseOut"
+	config.text_blink_ease_out = "EaseIn"
+
 	-- カラースキーム
 	config.color_scheme = "ayu"
 	config.colors = {
