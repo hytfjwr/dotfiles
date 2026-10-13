@@ -118,6 +118,7 @@ style = "bg:color_purple"
 format = '[[ $symbol( $profile)( \($region\)) ](fg:color_fg0 bg:color_purple)]($style)'
 
 [gcloud]
+disabled = true
 style = "bg:color_purple"
 format = '[[ $symbol( $account)( \($region\)) ](fg:color_fg0 bg:color_purple)]($style)'
 
