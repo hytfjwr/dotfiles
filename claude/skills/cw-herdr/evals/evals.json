@@ -4,7 +4,7 @@
     {
       "id": 1,
       "prompt": "いまの作業とは別で、models/staging/stg_orders.sql の重複行を除くタスクを cw で召喚して並行で進めたい。PR まで作ってほしい。原因は customer_id が NULL の行が join で増えてること。",
-      "expected_output": "fix/ 系のブランチ名を自動生成し、メインリポジトリの root と base（デフォルトブランチ）を解決し、自己完結したプロンプト（目的・背景・完了条件・注意）をファイルに書く。CLAUDE_WORKTREE_BACKEND=herdr を付けて bunx @hytfjwr/claude-worktree を -plan / -base / -pane / -json / -d / -pr で 1 回呼ぶ。JSON の paneId で Claude の起動を確認し、workspace 番号・ラベル・ブランチ・worktree パスを報告して完了待ちはしない。",
+      "expected_output": "fix/ 系のブランチ名を自動生成し、メインリポジトリの root と base（デフォルトブランチ）を解決し、自己完結したプロンプト（目的・背景・完了条件・注意）をファイルに書く。CLAUDE_WORKTREE_BACKEND=herdr を付けて bunx @hytfjwr/claude-worktree を -plan / -base / -pane / -json / -d / -pr で 1 回呼ぶ。JSON の workspaceId で herdr workspace rename を実行してラベルを日本語の要約に付け替え、paneId で Claude の起動を確認し、workspace 番号・ラベル・ブランチ・worktree パスを報告して完了待ちはしない。",
       "files": []
     },
     {
