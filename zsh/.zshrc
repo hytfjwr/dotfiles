@@ -1,6 +1,6 @@
 export ZSH="$HOME/.oh-my-zsh"
 zstyle ':omz:update' frequency 13
-plugins=(git zsh-autosuggestions zsh-syntax-highlighting aliases copypath history docker github composer laravel brew gh npm sudo web-search docker-compose)
+plugins=(git zsh-autosuggestions zsh-syntax-highlighting aliases copypath history docker composer laravel brew gh npm sudo web-search docker-compose)
 source $ZSH/oh-my-zsh.sh
 if [[ -n $SSH_CONNECTION ]]; then
   export EDITOR='vim'
