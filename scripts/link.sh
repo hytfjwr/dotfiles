@@ -59,6 +59,7 @@ LINKS=(
     "local_bin/awake|$HOME/.local/bin/awake"
     "local_bin/wezterm-clean|$HOME/.local/bin/wezterm-clean"
     "local_bin/secure-input|$HOME/.local/bin/secure-input"
+    "local_bin/claude-warmup|$HOME/.local/bin/claude-warmup"
     "local_bin/claude-session-bridge|$HOME/.local/bin/claude-session-bridge"
     "local_bin/tuicr-prompt|$HOME/.local/bin/tuicr-prompt"
     "local_bin/tuicr-review|$HOME/.local/bin/tuicr-review"
