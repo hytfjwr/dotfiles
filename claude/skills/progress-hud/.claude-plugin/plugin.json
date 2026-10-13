@@ -1,0 +1,21 @@
+{
+  "name": "progress-hud",
+  "version": "0.1.0",
+  "description": "Progress bars above the Claude Code prompt that follow multi-step work, with sub-agent strips and per-task time, token and cost deltas.",
+  "author": {
+    "name": "hayato"
+  },
+  "license": "MIT",
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "sound": {"type": "boolean", "title": "Sound", "description": "Play a chime when a bar needs input, fails or finishes", "default": true},
+    "volume": {"type": "number", "title": "Volume", "description": "Chime volume, 0 to 100", "default": 60},
+    "language": {"type": "string", "title": "Language", "description": "Language of the band text; auto follows LANG", "default": "ja", "options": ["ja", "en", "auto"]},
+    "nudge": {"type": "string", "title": "Nudge", "description": "How hard to push the model to keep the bar updated: off, soft (reminders only) or strict (gate edits and send back at Stop)", "default": "soft", "options": ["off", "soft", "strict"]},
+    "sessionMetrics": {"type": "string", "title": "Session metrics", "description": "Where to show the whole-session line (elapsed, cost, context, rate limit)", "default": "desktop", "options": ["off", "desktop", "all"]},
+    "maxBars": {"type": "number", "title": "Max bars", "description": "Most bars shown at once, 1 to 5", "default": 3},
+    "toastOnDone": {"type": "boolean", "title": "Toast on done", "description": "Show a toast with time, cost and output tokens when a bar finishes", "default": true},
+    "statusLine": {"type": "string", "title": "Status line", "description": "When to mirror the bar into the status line: auto (only while the band is hidden), always or off", "default": "auto", "options": ["auto", "always", "off"]},
+    "animation": {"type": "boolean", "title": "Animation", "description": "Animate the terminal band: a shimmer on the title of a running bar, a spinner, a twinkling tip and a glow when a bar finishes (about 8 frames a second while something runs)", "default": true}
+  }
+}
