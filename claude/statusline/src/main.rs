@@ -1,152 +1,24 @@
-use chrono::DateTime;
-use serde::Deserialize;
-use std::fmt::Write;
+mod input;
+mod render;
+mod usage;
+
+use input::{RateLimit, StatusData};
+use render::{
+    fg, fg_bold, frame_now, icon, Color, Gauge, Theme, DIM_BAR, THEME_5H, THEME_7D, THEME_CTX,
+    THEME_SCOPED,
+};
 use std::io::Read;
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-#[derive(Deserialize)]
-struct StatusData {
-    model: Option<Model>,
-    context_window: Option<ContextWindow>,
-    cost: Option<Cost>,
-    rate_limits: Option<RateLimits>,
-}
+const BRANCH_COLOR: Color = (200, 100, 220);
+const CHANGES_COLOR: Color = (240, 200, 60);
+const COST_COLOR: Color = (140, 205, 155);
+const FAST_COLOR: Color = (255, 175, 70);
+const THINKING_COLOR: Color = (245, 215, 120);
 
-#[derive(Deserialize)]
-struct Model {
-    display_name: Option<String>,
-}
-
-#[derive(Deserialize)]
-struct ContextWindow {
-    used_percentage: Option<f64>,
-}
-
-#[derive(Deserialize)]
-struct Cost {
-    total_lines_added: Option<i64>,
-    total_lines_removed: Option<i64>,
-}
-
-#[derive(Deserialize, serde::Serialize)]
-struct RateLimits {
-    five_hour: Option<RateLimit>,
-    seven_day: Option<RateLimit>,
-}
-
-#[derive(Deserialize, serde::Serialize)]
-struct RateLimit {
-    used_percentage: Option<f64>,
-    resets_at: Option<f64>,
-}
-
-type Color = (u8, u8, u8);
-
-/// Three-stop gradient: low -> mid -> high
-struct Theme {
-    low: Color,
-    mid: Color,
-    high: Color,
-    label: Color,
-}
-
-const THEME_CTX: Theme = Theme {
-    low: (80, 200, 200),
-    mid: (60, 160, 230),
-    high: (130, 100, 255),
-    label: (80, 190, 210),
-};
-
-const THEME_5H: Theme = Theme {
-    low: (80, 210, 100),
-    mid: (240, 200, 60),
-    high: (255, 75, 75),
-    label: (240, 180, 60),
-};
-
-const THEME_7D: Theme = Theme {
-    low: (170, 140, 245),
-    mid: (210, 100, 200),
-    high: (255, 75, 120),
-    label: (180, 140, 240),
-};
-
-const DIM_BAR: Color = (60, 60, 70);
-const DIM_TEXT: Color = (120, 120, 130);
-
-/// Interpolate between two RGB colors based on t (0.0 to 1.0)
-fn lerp_color(c1: Color, c2: Color, t: f64) -> Color {
-    let t = t.clamp(0.0, 1.0);
-    (
-        (c1.0 as f64 + (c2.0 as f64 - c1.0 as f64) * t) as u8,
-        (c1.1 as f64 + (c2.1 as f64 - c1.1 as f64) * t) as u8,
-        (c1.2 as f64 + (c2.2 as f64 - c1.2 as f64) * t) as u8,
-    )
-}
-
-/// Get color for a percentage along a theme's gradient
-fn theme_color(theme: &Theme, pct: f64) -> Color {
-    if pct <= 50.0 {
-        lerp_color(theme.low, theme.mid, pct / 50.0)
-    } else {
-        lerp_color(theme.mid, theme.high, (pct - 50.0) / 50.0)
-    }
-}
-
-/// Format text with TrueColor foreground
-fn fg(text: &str, color: Color) -> String {
-    format!("\x1b[38;2;{};{};{}m{}\x1b[0m", color.0, color.1, color.2, text)
-}
-
-/// Format text as bold
-fn bold(text: &str) -> String {
-    format!("\x1b[1m{}\x1b[0m", text)
-}
-
-/// Build a progress bar with per-character gradient along the theme
-fn progress_bar(pct: f64, theme: &Theme) -> String {
-    let width = 6usize;
-    let filled = ((pct / 100.0) * width as f64).round() as usize;
-    let filled = filled.min(width);
-    let mut bar = String::with_capacity(width * 32);
-    for i in 0..width {
-        let (color, ch) = if i < filled {
-            let block_pct = (i as f64 / (width - 1) as f64) * pct;
-            (theme_color(theme, block_pct), '\u{2588}')
-        } else {
-            (DIM_BAR, '\u{2591}')
-        };
-        let _ = write!(bar, "\x1b[38;2;{};{};{}m{}", color.0, color.1, color.2, ch);
-    }
-    bar.push_str("\x1b[0m");
-    bar
-}
-
-/// Build a rate limit section (used for both 5h and 7d)
-fn build_rate_limit_section(
-    label_text: &str,
-    theme: &Theme,
-    limit: &RateLimit,
-    show_remaining: bool,
-) -> Option<String> {
-    let pct = limit.used_percentage?;
-    let color = theme_color(theme, pct);
-    let label = fg(label_text, theme.label);
-    let bar = progress_bar(pct, theme);
-    let pct_str = fg(&format!("{:.0}%", pct), color);
-    let mut section = format!("{} {} {}", label, bar, pct_str);
-    if show_remaining {
-        if let Some(resets_at) = limit.resets_at {
-            if let Some(remaining) = format_remaining(resets_at) {
-                section.push_str(&format!(" {}", fg(&remaining, DIM_TEXT)));
-            }
-        }
-    }
-    Some(section)
-}
-
-/// Format remaining time from resets_at epoch
+/// Format remaining time from a `resets_at` epoch. Zero-padded so the width
+/// stays stable while the animation redraws the line.
 fn format_remaining(resets_at: f64) -> Option<String> {
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -160,11 +32,11 @@ fn format_remaining(resets_at: f64) -> Option<String> {
     if total_secs >= 86_400 {
         let days = total_secs / 86_400;
         let hours = (total_secs % 86_400) / 3600;
-        Some(format!("({}d{}h)", days, hours))
+        Some(format!("{}d{:02}h", days, hours))
     } else {
         let hours = total_secs / 3600;
         let mins = (total_secs % 3600) / 60;
-        Some(format!("({}h{}m)", hours, mins))
+        Some(format!("{}h{:02}m", hours, mins))
     }
 }
 
@@ -193,64 +65,130 @@ fn git_branch() -> Option<String> {
     None
 }
 
-/// Output structs for ~/.claude/rate_limits.json
-#[derive(serde::Serialize)]
-struct RateLimitsFile {
-    rate_limits: RateLimitsOutput,
-}
-
-#[derive(serde::Serialize)]
-struct RateLimitsOutput {
-    five_hour: Option<RateLimitOutput>,
-    seven_day: Option<RateLimitOutput>,
-}
-
-#[derive(serde::Serialize)]
-struct RateLimitOutput {
-    used_percentage: f64,
-    resets_at: String,
-}
-
-fn epoch_to_iso8601(epoch: f64) -> Option<String> {
-    let dt = DateTime::from_timestamp(epoch as i64, 0)?;
-    Some(dt.format("%Y-%m-%dT%H:%M:%SZ").to_string())
-}
-
-fn convert_rate_limit(limit: &RateLimit) -> Option<RateLimitOutput> {
-    Some(RateLimitOutput {
-        used_percentage: limit.used_percentage?,
-        resets_at: epoch_to_iso8601(limit.resets_at?)?,
-    })
-}
-
-/// Write rate_limits to /tmp for WezTerm tabline
-fn write_rate_limits(rate_limits: &Option<RateLimits>) {
-    if let Some(rl) = rate_limits {
-        if let Ok(json) = serde_json::to_string(rl) {
-            let _ = std::fs::write("/tmp/claude_rate_limits.json", json);
-        }
+/// Tint the model name by family so the active model reads at a glance
+fn model_color(id: Option<&str>) -> Color {
+    let id = id.unwrap_or_default().to_ascii_lowercase();
+    if id.contains("opus") {
+        (205, 165, 255)
+    } else if id.contains("sonnet") {
+        (110, 185, 255)
+    } else if id.contains("fable") {
+        (255, 195, 105)
+    } else if id.contains("haiku") {
+        (120, 225, 165)
+    } else {
+        (225, 225, 235)
     }
 }
 
-/// Write rate_limits to ~/.claude/rate_limits.json with ISO 8601 timestamps
-fn write_rate_limits_file(rate_limits: &Option<RateLimits>) {
-    let Some(rl) = rate_limits else { return };
-    let output = RateLimitsFile {
-        rate_limits: RateLimitsOutput {
-            five_hour: rl.five_hour.as_ref().and_then(convert_rate_limit),
-            seven_day: rl.seven_day.as_ref().and_then(convert_rate_limit),
-        },
-    };
-    let Ok(json) = serde_json::to_string_pretty(&output) else {
-        return;
-    };
-    if let Some(home) = std::env::var_os("HOME") {
-        let path = std::path::Path::new(&home).join(".claude/rate_limits.json");
-        let _ = std::fs::write(path, json);
+/// Cool for cheap effort, hot for expensive
+fn effort_color(level: &str) -> Color {
+    match level {
+        "low" => (120, 185, 255),
+        "medium" => (120, 220, 180),
+        "high" => (240, 200, 60),
+        "xhigh" => (255, 145, 60),
+        "max" => (255, 85, 125),
+        _ => (180, 180, 190),
     }
+}
+
+/// `󰚩 Opus 5` — bold, tinted by model family
+fn model_segment(data: &StatusData) -> Option<String> {
+    let model = data.model.as_ref()?;
+    let name = model.display_name.as_deref()?;
+    let color = model_color(model.id.as_deref());
+    Some(format!(
+        "{} {}",
+        fg(icon::MODEL, color),
+        fg_bold(name, color)
+    ))
+}
+
+/// Session modes: fast mode, effort level, extended thinking
+fn mode_segment(data: &StatusData) -> Option<String> {
+    let mut badges: Vec<String> = Vec::new();
+
+    if data.fast_mode == Some(true) {
+        badges.push(fg(icon::FAST, FAST_COLOR));
+    }
+    if let Some(level) = data.effort.as_ref().and_then(|e| e.level.as_deref()) {
+        let color = effort_color(level);
+        badges.push(format!("{} {}", fg(icon::EFFORT, color), fg(level, color)));
+    }
+    if let Some(ref thinking) = data.thinking {
+        // Thinking is on by default, so the badge dims rather than disappears.
+        let color = if thinking.enabled == Some(false) {
+            DIM_BAR
+        } else {
+            THINKING_COLOR
+        };
+        badges.push(fg(icon::THINKING, color));
+    }
+
+    if badges.is_empty() {
+        None
+    } else {
+        Some(badges.join(" "))
+    }
+}
+
+///  branch (+added,-removed)
+fn git_segment(data: &StatusData) -> Option<String> {
+    let branch = git_branch()?;
+    let branch_str = fg(&format!("{} {}", icon::BRANCH, branch), BRANCH_COLOR);
+
+    let (added, removed) = match data.cost {
+        Some(ref cost) => (
+            cost.total_lines_added.unwrap_or(0),
+            cost.total_lines_removed.unwrap_or(0),
+        ),
+        None => (0, 0),
+    };
+    if added > 0 || removed > 0 {
+        let changes = fg(&format!("(+{},-{})", added, removed), CHANGES_COLOR);
+        Some(format!("{} {}", branch_str, changes))
+    } else {
+        Some(branch_str)
+    }
+}
+
+/// Session spend so far
+fn cost_segment(data: &StatusData) -> Option<String> {
+    let usd = data.cost.as_ref()?.total_cost_usd?;
+    if usd <= 0.0 {
+        return None;
+    }
+    Some(fg(&format!("${:.2}", usd), COST_COLOR))
+}
+
+fn rate_limit_gauge<'a>(
+    label: &'a str,
+    theme: &'a Theme,
+    limit: &RateLimit,
+    phase: u64,
+    stale: bool,
+    frame: u64,
+) -> Option<String> {
+    let gauge = Gauge {
+        icon: label,
+        name: None,
+        pct: limit.used_percentage?,
+        theme,
+        remaining: limit.resets_at.and_then(format_remaining),
+        phase,
+        stale,
+    };
+    Some(gauge.render(frame))
 }
 
 fn main() {
+    // Detached refresh of the usage snapshot and the exports; no stdin, no output.
+    if std::env::args().nth(1).as_deref() == Some("--refresh-usage") {
+        usage::refresh();
+        return;
+    }
+
     let mut input = String::new();
     if std::io::stdin().read_to_string(&mut input).is_err() {
         return;
@@ -261,62 +199,81 @@ fn main() {
         Err(_) => return,
     };
 
-    // Side effect: write rate_limits for WezTerm and ~/.claude/
-    write_rate_limits(&data.rate_limits);
-    write_rate_limits_file(&data.rate_limits);
+    // Read once: an aged-out snapshot spawns a background refresh as a side
+    // effect, which is also what keeps the exports up to date.
+    let usage = usage::read();
 
+    let frame = frame_now();
     let mut line1: Vec<String> = Vec::new();
     let mut line2: Vec<String> = Vec::new();
 
-    // Line 1: Model name (bold)
-    if let Some(ref model) = data.model {
-        if let Some(ref name) = model.display_name {
-            line1.push(bold(name));
-        }
+    line1.extend(model_segment(&data));
+    line1.extend(mode_segment(&data));
+    line1.extend(git_segment(&data));
+    line1.extend(cost_segment(&data));
+
+    // Context window
+    if let Some(pct) = data
+        .context_window
+        .as_ref()
+        .and_then(|ctx| ctx.used_percentage)
+    {
+        let gauge = Gauge {
+            icon: icon::CTX,
+            name: None,
+            pct,
+            theme: &THEME_CTX,
+            remaining: None,
+            phase: 0,
+            stale: false,
+        };
+        line2.push(gauge.render(frame));
     }
 
-    // Line 1: Git branch (magenta) + changes (yellow)
-    if let Some(branch) = git_branch() {
-        let magenta = (200, 100, 220);
-        let branch_str = fg(&format!("\u{e0a0} {}", branch), magenta);
-
-        if let Some(ref cost) = data.cost {
-            let added = cost.total_lines_added.unwrap_or(0);
-            let removed = cost.total_lines_removed.unwrap_or(0);
-            if added > 0 || removed > 0 {
-                let yellow = (240, 200, 60);
-                let changes = fg(&format!("(+{},-{})", added, removed), yellow);
-                line1.push(format!("{} {}", branch_str, changes));
-            } else {
-                line1.push(branch_str);
-            }
-        } else {
-            line1.push(branch_str);
-        }
-    }
-
-    // Line 2: Context window (cyan theme)
-    if let Some(ref ctx) = data.context_window {
-        if let Some(pct) = ctx.used_percentage {
-            let color = theme_color(&THEME_CTX, pct);
-            let label = fg("ctx", THEME_CTX.label);
-            let bar = progress_bar(pct, &THEME_CTX);
-            let pct_str = fg(&format!("{:.0}%", pct), color);
-            line2.push(format!("{} {} {}", label, bar, pct_str));
-        }
-    }
-
-    // Line 2: Rate limits (5h: warm theme, 7d: purple theme)
-    if let Some(ref rl) = data.rate_limits {
+    // Plan rate limits, from the usage snapshot so every session shows the same
+    // value. The payload's copy is as old as this session's last API call, so it
+    // is only the fallback for when there is no snapshot.
+    let (plan, plan_stale) = match usage {
+        Some(ref usage) => (Some(&usage.plan), usage.stale),
+        None => (data.rate_limits.as_ref(), false),
+    };
+    if let Some(rl) = plan {
         if let Some(ref five) = rl.five_hour {
-            if let Some(s) = build_rate_limit_section("5h", &THEME_5H, five, true) {
-                line2.push(s);
-            }
+            line2.extend(rate_limit_gauge(
+                icon::FIVE_HOUR,
+                &THEME_5H,
+                five,
+                1,
+                plan_stale,
+                frame,
+            ));
         }
         if let Some(ref seven) = rl.seven_day {
-            if let Some(s) = build_rate_limit_section("7d", &THEME_7D, seven, true) {
-                line2.push(s);
-            }
+            line2.extend(rate_limit_gauge(
+                icon::SEVEN_DAY,
+                &THEME_7D,
+                seven,
+                2,
+                plan_stale,
+                frame,
+            ));
+        }
+    }
+
+    // Per-model weekly windows (Fable), from the usage snapshot
+    if let Some(ref usage) = usage {
+        for limit in &usage.scoped {
+            let gauge = Gauge {
+                icon: icon::SCOPED,
+                // One bucket is unambiguous; name the others.
+                name: (usage.scoped.len() > 1).then_some(limit.display_name.as_str()),
+                pct: limit.pct,
+                theme: &THEME_SCOPED,
+                remaining: limit.resets_at.and_then(format_remaining),
+                phase: 3,
+                stale: usage.stale,
+            };
+            line2.push(gauge.render(frame));
         }
     }
 
