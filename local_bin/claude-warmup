@@ -1,0 +1,31 @@
+#!/bin/bash
+# claude-warmup - Start the Claude Code 5h rate-limit window early
+#
+# The 5h window only starts once a message is sent, so this opens a new
+# WezTerm tab that sends a throwaway prompt to Claude Code (Haiku), shows the
+# reply for a few seconds, and exits so WezTerm closes the tab. When the
+# WezTerm GUI is not running, it runs the same prompt without a tab.
+# Run daily at 07:00 by launchd (launchd/com.hytfjwr.claude-warmup.plist).
+
+set -euo pipefail
+
+PROMPT="おはよう。一言だけ返して。"
+MODEL="haiku"
+WEZTERM="/opt/homebrew/bin/wezterm"
+CLAUDE="$HOME/.local/bin/claude"
+LOG_DIR="$HOME/.local/state/claude-warmup"
+LINGER_SECONDS=5
+
+mkdir -p "$LOG_DIR"
+exec >> "$LOG_DIR/warmup.log" 2>&1
+echo "=== $(date '+%Y-%m-%d %H:%M:%S') ==="
+
+if "$WEZTERM" cli list > /dev/null 2>&1; then
+    # Run through a login shell so plugin hooks can find node (via mise)
+    "$WEZTERM" cli spawn --cwd "$HOME" -- \
+        /bin/zsh -lic "\"$CLAUDE\" -p --model $MODEL '$PROMPT'; sleep $LINGER_SECONDS"
+    echo "Spawned WezTerm tab"
+else
+    echo "WezTerm is not running, falling back to headless mode"
+    (cd "$HOME" && "$CLAUDE" -p --model "$MODEL" "$PROMPT")
+fi

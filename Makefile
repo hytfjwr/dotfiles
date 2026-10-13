@@ -1,4 +1,4 @@
-.PHONY: all brew npm claude ohmyzsh link macos format lint mise statusline tmux-shim
+.PHONY: all brew npm claude ohmyzsh link launchd macos format lint mise statusline tmux-shim
 
 all:
 	./setup.sh
@@ -14,6 +14,9 @@ claude:
 
 ohmyzsh:
 	./scripts/ohmyzsh.sh
+
+launchd:
+	./scripts/launchd.sh
 
 link:
 	./scripts/link.sh
@@ -38,6 +41,7 @@ lint:
 	cd scripts && shellcheck -x *.sh lib/*.sh ../setup.sh
 	shellcheck local_bin/aerospace-fix-windows
 	shellcheck local_bin/awake
+	shellcheck local_bin/claude-warmup
 	shellcheck local_bin/secure-input
 	shellcheck local_bin/tuicr-prompt
 	shellcheck local_bin/cw-herdr
