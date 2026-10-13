@@ -27,22 +27,23 @@ wezterm.on("update-status", function(_, pane)
 end)
 
 -- 起動時にworkspace状態を復元
-wezterm.on("gui-startup", resurrect.state_manager.resurrect_on_gui_startup)
+wezterm.on("gui-startup", function()
+	local ok, err = resurrect.state_manager.resurrect_on_gui_startup()
+	if not ok then
+		wezterm.log_error("resurrect: restore on startup failed: " .. tostring(err))
+	end
+end)
 
--- 定期保存
+-- 定期保存（workspaceはworkspace_saveがfinishedイベントで保存する）
 resurrect.state_manager.periodic_save({
 	interval_seconds = 30,
 	save_tabs = true,
 	save_windows = true,
-	save_workspaces = true,
+	save_workspaces = false,
 })
 
--- 定期保存完了後にcurrent_stateを更新
-wezterm.on("resurrect.state_manager.periodic_save.finished", function()
-	local workspace = wezterm.mux.get_active_workspace()
-	resurrect.state_manager.save_state(resurrect.workspace_state.get_workspace_state())
-	resurrect.state_manager.write_current_state(workspace, "workspace")
-end)
+-- 縮退ガード付きのworkspace保存（保存状態はタブバーに表示）
+require("workspace_save").setup()
 
 -- 設定を自動リロードする
 config.automatically_reload_config = true
