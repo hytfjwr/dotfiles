@@ -2,3 +2,7 @@
 .env
 diary/
 karabiner/automatic_backups/
+claude/skills/progress-hud/.claude-plugin/types/
+claude/skills/progress-hud/tsconfig.json
+claude/skills/progress-hud/tests/.build/
+claude/skills/progress-hud/tests/look.html
