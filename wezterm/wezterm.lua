@@ -34,15 +34,7 @@ wezterm.on("gui-startup", function()
 	end
 end)
 
--- 定期保存（workspaceはworkspace_saveがfinishedイベントで保存する）
-resurrect.state_manager.periodic_save({
-	interval_seconds = 30,
-	save_tabs = true,
-	save_windows = true,
-	save_workspaces = false,
-})
-
--- 縮退ガード付きのworkspace保存（保存状態はタブバーに表示）
+-- 定期保存（30秒ごと。workspaceは縮退ガード付き、保存状態はタブバーに表示）
 require("workspace_save").setup()
 
 -- 設定を自動リロードする

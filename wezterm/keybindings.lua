@@ -4,6 +4,7 @@ local wezterm = require("wezterm")
 local resurrect = wezterm.plugin.require("https://github.com/MLFlexer/resurrect.wezterm")
 local presets = require("presets")
 local claude_sessions = require("claude_sessions")
+local appearance = require("appearance")
 
 local M = {}
 
@@ -192,6 +193,44 @@ M.keys = {
 				"WezTerm",
 				string.format("Neovim bg opacity: %.2f", overrides.text_background_opacity)
 			)
+		end),
+	},
+	-- 背景モードの切り替え（アニメーション → 単色透過 → 不透明 → …）。
+	-- アニメーションは appearance.lua のベース設定そのものなので override を消して戻す。
+	-- 他の 2 つは background レイヤーを単色に差し替える。
+	{
+		key = "u",
+		mods = "CMD|SHIFT",
+		action = wezterm.action_callback(function(window, _pane)
+			local overrides = window:get_config_overrides() or {}
+			local bg_color = window:effective_config().colors.background
+			local function solid_layer(opacity)
+				return { { source = { Color = bg_color }, width = "100%", height = "100%", opacity = opacity } }
+			end
+
+			-- 現在のモードは override の中身から判定する
+			local label
+			if overrides.window_background_opacity == 1.0 then
+				-- 不透明 → アニメーション
+				overrides.window_background_opacity = nil
+				overrides.text_background_opacity = nil
+				overrides.macos_window_background_blur = nil
+				overrides.background = nil
+				label = "animated"
+			elseif overrides.background then
+				-- 単色透過 → 不透明
+				overrides.window_background_opacity = 1.0
+				overrides.text_background_opacity = 1.0
+				overrides.macos_window_background_blur = 0
+				overrides.background = solid_layer(1.0)
+				label = "opaque"
+			else
+				-- アニメーション → 単色透過
+				overrides.background = solid_layer(appearance.window_opacity)
+				label = "transparent"
+			end
+			window:set_config_overrides(overrides)
+			window:toast_notification("WezTerm", "Background: " .. label)
 		end),
 	},
 	-- nvimペインにフォーカス

@@ -3,6 +3,9 @@ local wezterm = require("wezterm")
 
 local M = {}
 
+-- 単色の透過背景の不透明度。keybindings.lua の背景モード切り替えでも使う
+M.window_opacity = 0.45
+
 function M.apply(config)
 	-- フォント設定
 	config.font = wezterm.font_with_fallback({ "0xProto", "Hiragino Sans" })
@@ -38,8 +41,27 @@ function M.apply(config)
 	}
 
 	-- ウィンドウ設定
-	config.window_background_opacity = 0.45
-	config.macos_window_background_blur = 20
+	config.window_background_opacity = M.window_opacity
+	config.macos_window_background_blur = 40
+
+	-- ループするグラデーション背景（backgrounds/gen-gradient.sh で生成）。
+	-- background を指定すると window_background_opacity ではなくレイヤーの opacity が効くので、
+	-- 0.75 にしてデスクトップのぼかしを少し透かす。画像が無ければ従来の単色透過のまま。
+	local gradient = wezterm.config_dir .. "/backgrounds/gradient.png"
+	if wezterm.glob(gradient)[1] then
+		config.background = {
+			{
+				source = { File = gradient },
+				width = "100%",
+				height = "100%",
+				opacity = 0.75,
+				-- 明るさは画像を作り直さずここで調整する
+				hsb = { brightness = 0.6 },
+			},
+		}
+		-- APNG（8fps）を取りこぼさず、点滅テキストのフェードもなめらかに保つ
+		config.animation_fps = 12
+	end
 	config.window_decorations = "RESIZE"
 	config.window_padding = {
 		left = 10,
