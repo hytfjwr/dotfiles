@@ -48,7 +48,6 @@ get_target_workspace() {
         com.jetbrains.PhpStorm)    echo "2" ;;
         com.microsoft.VSCode)      echo "2" ;;
         # Web Browsers -> Workspace 3
-        company.thebrowser.Browser) echo "3" ;;  # Arc
         company.thebrowser.dia)   echo "3" ;;  # Dia
         com.google.Chrome)         echo "3" ;;
         # Database Tools -> Workspace 4
@@ -67,6 +66,8 @@ get_target_workspace() {
         com.spotify.client)        echo "M" ;;
         # Linear -> Workspace L
         com.linear)                echo "L" ;;
+        # Electron -> Workspace E
+        com.github.Electron)       echo "E" ;;
         # マッピングなし
         *) echo "" ;;
     esac

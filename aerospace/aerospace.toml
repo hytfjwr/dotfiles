@@ -2,6 +2,7 @@ config-version = 2
 after-startup-command = [
   'exec-and-forget $HOME/.local/bin/aerospace-fix-windows --quiet',
   'layout --workspace C --root h_tiles',
+  'layout --workspace 3 --root h_tiles',
   'layout --workspace 4 --root h_tiles',
 ]
 exec-on-workspace-change = [
@@ -58,6 +59,7 @@ preset = 'qwerty'
 9 = 'built-in'
 S = 'built-in'
 M = 'built-in'
+E = 'built-in'
 [gaps]
 inner.horizontal = 0
 inner.vertical = 0
@@ -204,10 +206,6 @@ run = 'move-node-to-workspace 2'
 
 # Web Browsers -> Workspace 3
 [[on-window-detected]]
-if.app-id = 'company.thebrowser.Browser' # Arc
-run = 'move-node-to-workspace 3'
-
-[[on-window-detected]]
 if.app-id = 'company.thebrowser.dia' # Dia
 run = 'move-node-to-workspace 3'
 
@@ -257,6 +255,25 @@ run = 'move-node-to-workspace M'
 [[on-window-detected]]
 if.app-id = 'com.linear'
 run = 'move-node-to-workspace L'
+
+# Electron -> Workspace E (MacBook built-in display)
+[[on-window-detected]]
+if.app-id = 'com.github.Electron'
+run = 'move-node-to-workspace E'
+
+# 認証系（Passwords / Touch ID・パスワード入力ダイアログ）は移動せず、
+# いまのワークスペースに floating で出す（catch-all で F に飛ばされるのを防ぐ）
+[[on-window-detected]]
+if.app-id = 'com.apple.Passwords'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.LocalAuthentication.UIAgent' # coreautha (Touch ID)
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.SecurityAgent'
+run = 'layout floating'
 
 # Catch-all: 上記のどのルールにもマッチしないアプリは Workspace F へ
 [[on-window-detected]]
