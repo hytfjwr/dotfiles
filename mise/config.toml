@@ -5,6 +5,7 @@ php = "8.4"
 go = "latest"
 rust = "latest"
 ruby = "3.3"
+java = "temurin-25"
 
 [settings]
 legacy_version_file = true
