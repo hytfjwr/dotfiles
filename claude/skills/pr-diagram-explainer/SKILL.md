@@ -1,17 +1,17 @@
 ---
 name: pr-diagram-explainer
 description: |
-  Create rich explanatory figures for a pull request body so reviewers can grasp the change
-  (processing flow, layer/reference rules, before/after reach, step-by-step checks and their
-  outcomes, rollout order, data shape) at a glance before reading the diff. Figures are built
-  as HTML/CSS with bundled parts, verified with headless Chrome, rendered to 2x PNG, and
-  attached to the PR with `gh --attach`. Use whenever the user wants figures, diagrams, SVG or
-  "rich" explanatory images in a PR description: "PRに解説図を載せて", "解説SVGを作って",
-  "PR本文にリッチな解説画像を添えて", "レビュワー向けに図を描いて", "図で説明して(PRに貼る)",
-  "Draft PR作って、解説SVGも", "/pr-diagram-explainer". Also use when updating figures already
-  attached to a PR.
-  Do not use for diagrams committed to the repo (d2 lineage, mermaid in docs), data charts
-  (use dataviz), explainer videos, or standalone HTML pages / Artifacts.
+  Draw explanatory figures for a pull request body (processing flow, layer and reference rules,
+  before/after of permissions or behavior, step-by-step checks and their outcomes, rollout order,
+  data shape) so reviewers grasp the change before reading the diff. Builds them in HTML/CSS from
+  bundled parts, checks the layout with headless Chrome, renders 2x PNG, and attaches them to the
+  PR with `gh --attach`. Use whenever a figure, diagram, illustration or image is wanted in a PR
+  description or for reviewers, in any wording: "PRに図を載せて", "PR本文に図解を入れて",
+  "レビュワー向けに図を描いて", "変更前後を図で見せて", "ダイアグラムを追加して",
+  "PR作って、図もつけて", "説明が文字ばかりなので図を足して", "PRに貼った図を直して",
+  "/pr-diagram-explainer". Also use when fixing or replacing figures already attached to a PR.
+  Do not use for diagrams committed to the repo (d2, mermaid in docs), data charts (use dataviz),
+  explainer videos (use pr-explainer-video), pasting an existing screenshot, or Artifacts.
 user_invocable: true
 ---
 
