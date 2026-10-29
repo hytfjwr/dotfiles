@@ -38,7 +38,7 @@ format:
 
 lint:
 	stylua --check .
-	cd scripts && shellcheck -x *.sh lib/*.sh ../setup.sh
+	cd scripts && shellcheck -x *.sh lib/*.sh ../setup.sh ../install.sh
 	shellcheck local_bin/aerospace-fix-windows
 	shellcheck local_bin/awake
 	shellcheck local_bin/claude-warmup

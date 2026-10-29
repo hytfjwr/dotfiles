@@ -6,6 +6,16 @@ My dotfiles for macOS.
 
 ### Initial Setup
 
+On a fresh Mac, run the bootstrap installer. It installs the Xcode Command Line Tools if needed, clones this repository into `~/dev/dotfiles`, and runs `setup.sh`:
+
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/hytfjwr/dotfiles/main/install.sh)"
+```
+
+Set `DOTFILES_DIR`, `DOTFILES_REPO`, or `DOTFILES_BRANCH` to override the clone destination, repository, or branch.
+
+Or clone manually:
+
 ```bash
 git clone https://github.com/hytfjwr/dotfiles.git ~/dev/dotfiles
 cd ~/dev/dotfiles
