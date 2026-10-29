@@ -1,0 +1,137 @@
+/* 全シーン共通の様式。1920x1080。シーン固有の CSS は scene(css=...) に書き、セレクタは #sNN で始める。
+   アクセント色（--brand 系）は build.py が video.json の accent から上書きする */
+:root{
+  --ink:#1c2230;--sub:#626b7b;--line:#dfe2e8;--paper:#fbfaf8;--card:#fff;
+  --brand:#2f6fdf;--brand-ink:#1d4a9e;--brand-l:#e8f0fd;--brand-b:#b9cff5;
+  --mark:rgba(255,204,0,.45);--mark-edge:#d4a400;
+  --blue:#2563eb;--blue-l:#e6efff;--green:#15803d;--green-l:#e3f5e9;--red:#d92d4b;--red-l:#ffe8ec;--gray:#9aa3b2;--gray-l:#eef0f3;
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:1920px;height:1080px;overflow:hidden;font-family:"Noto Sans JP",sans-serif;color:var(--ink)}
+body{background:var(--paper)}
+
+/* ---- 枠：タイトル、右上の札、字幕 ---- */
+.top{position:absolute;left:72px;top:40px;display:flex;align-items:baseline;gap:18px}
+.ttl{font-size:42px;font-weight:700;letter-spacing:.01em}
+.en{font-size:var(--en-size,26px);font-weight:500;color:var(--brand)}
+.en::before{content:"/ ";color:#c9ccd3}
+.badge{position:absolute;right:72px;top:40px;font-size:26px;font-weight:700;color:#fff;background:var(--brand);border-radius:999px;padding:6px 24px}
+.stage{position:absolute;left:80px;top:124px;width:1760px;height:796px}
+.cap{position:absolute;left:0;right:0;bottom:44px;height:80px}
+.capline{position:absolute;left:50%;bottom:0;transform:translateX(-50%);max-width:1640px;width:max-content;background:#fff;border-radius:16px;
+  box-shadow:0 6px 24px rgba(28,34,48,.10);border:1px solid #eceef2;padding:14px 40px;font-size:32px;font-weight:500;line-height:1.45;
+  text-align:center;opacity:0;text-wrap:balance}
+.pbar{position:absolute;left:0;bottom:0;width:100%;height:6px;background:#eceef2}  /* 進捗の色の部分は build.py が最後に重ねる */
+
+/* ---- 汎用 ---- */
+.abs{position:absolute}
+.h1{font-size:40px;font-weight:700}.h2{font-size:32px;font-weight:700}.t{font-size:28px}.s{font-size:24px;color:var(--sub)}
+.big{font-family:"Roboto","Noto Sans JP",sans-serif;font-weight:700;line-height:1}
+.mono{font-family:Menlo,monospace}
+.card{position:absolute;background:#fff;border:1.5px solid var(--line);border-radius:18px;padding:20px 26px;box-shadow:0 6px 22px rgba(28,34,48,.07)}
+.card.brand{background:var(--brand-l);border-color:var(--brand-b)}
+.card.soft{background:var(--gray-l);box-shadow:none}
+.chip{position:absolute;white-space:nowrap;border-radius:12px;padding:8px 20px;font-size:28px;font-weight:700;background:#fff;border:1.5px solid var(--line)}
+.chip.brand{background:var(--brand);color:#fff;border-color:var(--brand)}
+.chip.ghost{background:var(--brand-l);color:var(--brand-ink);border-color:var(--brand-b)}
+.key{display:inline-flex;align-items:center;justify-content:center;width:1.6em;height:1.6em;border-radius:10px;background:var(--brand);color:#fff;font-weight:900;margin-right:.4em}
+
+/* ---- スクリーンショットの枠（shot()）。.cam の中は撮影時の CSS px（論理 px）で置く ---- */
+.shot{position:absolute;background:#fff;border-radius:14px;border:1px solid #e3e6eb;box-shadow:0 18px 50px rgba(28,34,48,.14);overflow:hidden}
+.shot .bar{position:absolute;left:0;right:0;top:0;height:40px;background:#f1f2f5;border-bottom:1px solid #e3e6eb;display:flex;align-items:center;gap:8px;padding:0 16px}
+.shot .bar i{width:12px;height:12px;border-radius:50%;background:#d5d8de}
+.shot .bar span{margin-left:14px;font-size:17px;color:var(--sub);background:#fff;border-radius:8px;padding:2px 14px;white-space:nowrap;overflow:hidden}
+.shot .vp{position:absolute;left:0;right:0;bottom:0;overflow:hidden}
+.shot .cam{position:absolute;left:0;top:0;transform-origin:0 0}
+.shot .cam img.fr,.shot .cam video.fr{position:absolute;left:0;top:0;width:100%;display:block}  /* video は録画クリップ（clip()） */
+.shot.bare{border:none;border-radius:0;box-shadow:none;background:transparent}
+
+/* 蛍光ペン（hl）、囲み（ring）、スポットライト（spot）。いずれも .cam の中に置く */
+.hl{position:absolute;background:var(--mark);mix-blend-mode:multiply;border-radius:3px;transform-origin:left center}
+.ring{position:absolute;border:3px solid var(--brand);border-radius:8px}
+.spot{position:absolute;border-radius:10px;box-shadow:0 0 0 4000px rgba(28,34,48,.42)}
+
+/* カーソルとクリックの波紋（cursor()）。stage の座標で動かす */
+.cursor{position:absolute;left:0;top:0;width:40px;height:40px;z-index:50;pointer-events:none}
+.cursor svg{position:absolute;left:-4px;top:-2px;filter:drop-shadow(0 3px 4px rgba(0,0,0,.3))}
+.cursor .rip{position:absolute;left:-26px;top:-26px;width:52px;height:52px;border-radius:50%;border:4px solid var(--brand);opacity:0}
+
+/* 吹き出し（bubble()）。tail は bl / br / tl / tr / l / r / none */
+.bubble{position:absolute;background:#fff;border:1.5px solid var(--line);border-radius:18px;padding:16px 26px;font-size:28px;font-weight:500;line-height:1.5;box-shadow:0 8px 26px rgba(28,34,48,.12)}
+.bubble.dark{background:var(--ink);color:#fff;border-color:var(--ink)}
+.bubble.brand{background:var(--brand);color:#fff;border-color:var(--brand)}
+.bubble::after{content:"";position:absolute;width:22px;height:22px;background:inherit;border:inherit;border-top:none;border-left:none;transform:rotate(45deg)}
+.bubble.bl::after{left:40px;bottom:-12px}.bubble.br::after{right:40px;bottom:-12px}
+.bubble.tl::after{left:40px;top:-12px;transform:rotate(225deg)}.bubble.tr::after{right:40px;top:-12px;transform:rotate(225deg)}
+.bubble.l::after{left:-12px;top:calc(50% - 11px);transform:rotate(135deg)}.bubble.r::after{right:-12px;top:calc(50% - 11px);transform:rotate(-45deg)}
+.bubble.none::after{display:none}
+
+/* 入力欄（TYPE() で文字を打つ） */
+.input{position:absolute;background:#fff;border:2px solid var(--line);border-radius:12px;padding:10px 18px;font-size:28px;min-height:58px;white-space:nowrap}
+.caret{display:inline-block;width:2px;height:1.1em;background:var(--ink);vertical-align:-.15em;margin-left:2px}
+
+/* Markdown などのコード片 */
+.code{position:absolute;background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:18px 24px;font-family:Menlo,monospace;font-size:20px;line-height:1.6;white-space:pre;color:#374151}
+.code .k{color:var(--brand-ink);font-weight:700}
+
+/* ---- Claude Code CLI の画面（term()）。暗い端末の配色 ---- */
+.tw{position:absolute;background:#16171b;border-radius:14px;box-shadow:0 24px 60px rgba(12,14,20,.35),0 0 0 1px rgba(255,255,255,.06);overflow:hidden;
+  font-family:"SF Mono",Menlo,"Noto Sans JP",monospace;color:#e6e6e6;font-size:23px;line-height:1.5}
+.tw .tbar{height:42px;background:#24252b;display:flex;align-items:center;gap:9px;padding:0 18px;border-bottom:1px solid #2f3037}
+.tw .tbar i{width:14px;height:14px;border-radius:50%;background:#ff5f57}.tw .tbar i:nth-child(2){background:#febc2e}.tw .tbar i:nth-child(3){background:#28c840}
+.tw .tbar span{flex:1;text-align:center;color:#9a9ca5;font-size:18px;font-family:"Noto Sans JP",sans-serif;margin-right:60px}
+.tw .tbody{position:absolute;left:0;right:0;top:42px;bottom:0;padding:16px 28px 14px;overflow:hidden}  /* 上から埋まり、あふれたら engine.js が行の頭に合わせて送る */
+.tw .tspacer{height:160px}  /* 行の頭に合わせて最下部より先へ送るための余白（engine.js が足す） */
+.tw::after{content:"";position:absolute;left:0;right:0;top:42px;height:9px;background:#16171b;z-index:3}  /* 流したとき、上端に掛かった前の行の端を隠す */
+.tw .tscroll{display:flex;flex-direction:column;gap:6px}
+.tw .tl{white-space:pre-wrap;word-break:break-all;flex-shrink:0}
+.tw .o{color:#d97757}.tw .dim{color:#8b8d96}.tw b{font-weight:700;color:#fff}
+.tw .twel{border:1.5px solid #d97757;border-radius:10px;padding:10px 18px;align-self:flex-start;margin-bottom:6px}
+.tw .tuser{color:#b9bbc4}.tw .tuser .pc{color:#8b8d96}
+.tw .tsay,.tw .ttool{display:flex;gap:12px}.tw .dot{flex-shrink:0}
+.tw .tsay .dot{color:#e6e6e6}.tw .ttool.ok .dot{color:#4ec36b}.tw .ttool.err .dot{color:#ff6b6b}.tw .ttool.run .dot{color:#8b8d96}
+.tw .tres{display:flex;gap:14px;padding-left:28px;color:#b9bbc4}.tw .tres .el{color:#6f717a;flex-shrink:0}
+.tw .tres.err{color:#ff8a80}.tw .tres.dim{color:#8b8d96}
+.tw .tspin{color:#d97757}.tw .tspin .spin{display:inline-block;width:1em;text-align:center}
+.tw .tdiff{margin-left:36px;border:1px solid #33353d;border-radius:8px;padding:6px 0;font-size:21px;background:#1b1c21}
+.tw .tdiff .dh{color:#8b8d96;padding:0 14px 4px;font-size:19px}
+.tw .tdiff .dr{padding:0 14px;white-space:pre}.tw .tdiff .ln{color:#5f616a;display:inline-block;width:2.6em;text-align:right;margin-right:14px}
+.tw .tdiff .sg{display:inline-block;width:1.2em}.tw .tdiff .dm{background:rgba(255,107,107,.16);color:#ffb3ad}.tw .tdiff .dp{background:rgba(78,195,107,.16);color:#a8e6b6}
+.tw .tprompt{border:1.5px solid #4a4c55;border-radius:10px;padding:8px 16px;margin-top:12px;display:flex;gap:14px;min-height:52px;align-items:center}
+.tw .tprompt .pc{color:#8b8d96}.tw .pin{color:#f2f2f2}
+.tw .thint{color:#6f717a;font-size:18px;padding:6px 18px 0}
+.tw .caret{display:inline-block;width:.6em;height:1.05em;background:#e6e6e6;vertical-align:-.15em;margin-left:1px}
+.tw .ttoasts{display:flex;justify-content:flex-end;margin-top:-26px}
+.tw .ttoast{max-width:680px;background:#202127;border:1.5px solid #d97757;border-radius:10px;padding:12px 18px;font-size:19px;line-height:1.55;color:#e6e6e6;
+  box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.tw .ttoast .o{font-weight:700}
+.tw .tbl{margin-left:65px;border-collapse:collapse;font-size:20px}
+.tw .tbl td{padding:2px 16px 2px 0;white-space:nowrap}
+.tw .pend{color:#ffcc66}.tw .ok2{color:#4ec36b}.tw .na{color:#9fb3c8}.tw .ng{color:#ffb86b}
+.tw .nb{white-space:nowrap}  /* 折り返しを語の途中に入れず、手前の空白で折る */
+
+/* ---- 図の部品：色違いのカード・札、箱、レーン、縦線、丸、番号 ---- */
+:root{--amber:#c2700a;--amber-l:#fff3dc;--amber-b:#f1c97a;--red-b:#f2a7b5;--green-b:#9fd3b0;--blue-b:#a9c3f3;--gray-b:#cfd4dc}
+.card.red{background:var(--red-l);border-color:var(--red-b)}
+.card.green{background:var(--green-l);border-color:var(--green-b)}
+.card.blue{background:var(--blue-l);border-color:var(--blue-b)}
+.card.amber{background:var(--amber-l);border-color:var(--amber-b)}
+.card.gray{background:var(--gray-l);border-color:var(--gray-b);box-shadow:none}
+.chip.red{background:var(--red-l);color:var(--red);border-color:var(--red-b)}
+.chip.green{background:var(--green-l);color:var(--green);border-color:var(--green-b)}
+.chip.blue{background:var(--blue-l);color:var(--blue);border-color:var(--blue-b)}
+.chip.amber{background:var(--amber-l);color:var(--amber);border-color:var(--amber-b)}
+.chip.gray{background:var(--gray-l);color:var(--sub);border-color:var(--gray-b)}
+.chip.dash{background:transparent;border-style:dashed;border-color:var(--gray);color:var(--gray)}
+.box{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:#fff;border:2px solid var(--line);border-radius:18px;font-size:30px;font-weight:700;line-height:1.3}
+.lane{position:absolute;left:0;width:1760px;border-radius:12px}
+.lane>b{position:absolute;left:22px;top:50%;transform:translateY(-50%);font-size:24px;white-space:nowrap}
+.vline{position:absolute;width:0;border-left:4px dashed}
+.dot{position:absolute;border-radius:50%}
+.tw .dot{position:static;border-radius:0}  /* 端末の ⏺ は絶対配置にしない */
+.code .c{color:#9aa3b2}
+.num{display:inline-flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:50%;background:var(--brand);color:#fff;font-weight:900;font-size:30px;flex:none}
+.lt{display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:10px;background:var(--ink);color:#fff;font-family:"Roboto","Noto Sans JP",sans-serif;font-weight:700;font-size:28px;flex:none}
+
+/* 舞台の中身を包むカメラのラッパー（build.py が必ず入れる。CAM() が .camx を動かす） */
+.cam3,.camx{position:absolute;left:0;top:0;width:1760px;height:796px;transform-origin:50% 50%}

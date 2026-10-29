@@ -1,0 +1,32 @@
+# -*- coding: utf-8 -*-
+# 録画クリップの見本（拡張子が .txt なので読み込まれない。使うときは parts/s01.py にして、クリップ名を実物に替える）
+# 前提：assets/clips/before.mp4 / before.json と assets/clips/after.mp4 / after.json（録画担当が出す。形式は references/scene-api.md）
+# Before / After を左右に並べて同じ時刻に再生し、アクション（click）の時刻に印を出す
+from scenes_base import scene, clip, ring, cursor, chip, clip_actions, box_center
+
+W, H = 860, 484                      # 枠の大きさ（16:9 のクリップなら幅 860 で高さ 484）
+clicks = clip_actions("after", "click")
+hit = clicks[0]                      # 最初の click：{"t": 秒, "box": {x, y, w, h}（クリップの px）, ...}
+bx, by, bw, bh = (hit["box"][k] for k in ("x", "y", "w", "h"))
+cx, cy = box_center(hit)
+
+html = (
+    clip("a", 0, 80, W, H, "assets/clips/before.mp4", url="before")
+    + clip("b", 900, 80, W, H, "assets/clips/after.mp4", url="after",
+           inner=ring("rb", bx, by, bw, bh))        # inner は .cam の中＝クリップの px 座標。クリップと一緒に寄る・動く
+    + chip("ca", 0, 24, "Before") + chip("cb", 900, 24, "After", cls="brand")
+    + cursor()
+)
+
+scene("例", "録画クリップの見本", html,
+      ["左が変更の前、右が変更の後です。同じ操作を同時に再生します。",
+       "ここを押すと、右だけが、すぐに応答します。"],
+      f"""
+A(0,'#a,#b','up',{{d:.2,stagger:.15}});A(0,'#ca,#cb','fade',{{d:.5}});
+VID(1,'#a',{{d:.3,from:0,to:4}});VID(1,'#b',{{d:.3,from:0,to:4}});   // 2 つを同じ時刻に始める。to で止まって最後のコマを保持
+// クリップ時刻 t に相当する時刻へ、印を合わせる（AT を step の代わりに渡す）
+A(AT('#b',{hit["t"]}),'#rb','pop',{{d:-.2}});
+CUR(0,'#cur',XY('#b',{cx},{cy}));A(AT('#b',{hit["t"]}),'#cur','fade',{{d:-.6}});
+CLICK(AT('#b',{hit["t"]}),'#cur');
+FOCUS(2,'#b',[{bx - 200},{by - 120},{bw + 400},{bh + 240}],{{d:.2,dur:1200}});
+""")
