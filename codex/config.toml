@@ -1,2 +1,0 @@
-model = "codex-mini-latest"
-approval_policy = "unless-allow-listed"
