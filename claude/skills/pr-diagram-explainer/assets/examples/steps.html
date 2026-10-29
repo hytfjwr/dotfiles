@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../base.css">
+<style>
+  .steps { display: grid; grid-template-columns: 1fr 28px 1fr 28px 1fr 28px 1fr; align-items: stretch; }
+  .step { display: flex; flex-direction: column; gap: 12px; }
+  .step .card { flex: none; min-height: 116px; padding: 14px 16px; gap: 6px; }
+  .outcomes { display: flex; flex-direction: column; gap: 10px; padding-left: 14px; border-left: 2px solid var(--line); margin-left: 14px; }
+  .outcome { border: 1.5px solid var(--bd, var(--line)); background: var(--bg, #fff); border-radius: 8px; padding: 6px 12px; font-size: 15px; }
+  .outcome b { display: block; color: var(--fg, var(--ink)); }
+  .arrow-glyph { align-self: start; margin-top: 30px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="fig">
+  <header>
+    <div class="eyebrow">投稿の前の検査</div>
+    <div class="title">AI の判定は、4 つの関門を通ってから投稿する</div>
+  </header>
+
+  <div class="steps">
+    <div class="step">
+      <div class="card"><div class="head">①</div><div class="heading">形を検証</div><div class="detail">未知のキー、値の範囲</div></div>
+      <div class="outcomes">
+        <div class="outcome c-red"><b>失敗</b>不正な JSON</div>
+      </div>
+    </div>
+    <div class="arrow-glyph"></div>
+    <div class="step">
+      <div class="card"><div class="head">②</div><div class="heading">状態を再確認</div><div class="detail">head が審査時のまま</div></div>
+      <div class="outcomes">
+        <div class="outcome c-slate"><b>投稿しない</b>head が変わった</div>
+      </div>
+    </div>
+    <div class="arrow-glyph"></div>
+    <div class="step">
+      <div class="card"><div class="head">③</div><div class="heading">承認の条件</div><div class="detail">必須チェックが成功</div></div>
+      <div class="outcomes">
+        <div class="outcome c-amber"><b>コメントに格下げ</b>pending がある</div>
+      </div>
+    </div>
+    <div class="arrow-glyph"></div>
+    <div class="step">
+      <div class="card c-green"><div class="head">④</div><div class="heading">投稿</div><div class="detail">審査した head に固定</div></div>
+      <div class="outcomes">
+        <div class="outcome c-green"><b>レビューを投稿</b>approve / comment</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="caption">AI が書けるのは判定ファイル 1 つだけで、投稿は固定の手順が行う。</div>
+</div>
+</body>
+</html>

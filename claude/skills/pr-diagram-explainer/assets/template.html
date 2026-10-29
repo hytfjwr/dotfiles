@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="base.css">
+<style>
+  /* この図だけの調整はここに書く */
+</style>
+</head>
+<body>
+<div class="fig">
+  <header>
+    <div class="title">図が答える問いへの答えを短く言い切る</div>
+    <div class="subtitle">前提を 1 行で（無ければ消す）</div>
+  </header>
+
+  <div class="legend">
+    <span><span class="dot" style="--c:#94a3b8"></span>凡例は色や形に意味があるときだけ</span>
+  </div>
+
+  <div class="row" style="--align:center">
+    <div class="node" id="a"><div class="name">名前</div><div class="sub mono">実例の識別子</div></div>
+    <div class="node changed" id="b"><div class="name">この PR で変わる箱</div><div class="sub mono">example_id</div></div>
+  </div>
+
+  <div class="caption">図から外した理由や制約は、ここに 1〜2 行か、PR 本文に書く。</div>
+</div>
+
+<script type="application/json" id="wires">
+[
+  {"from": "a", "to": "b", "label": "読む"}
+]
+</script>
+<script src="wires.js"></script>
+</body>
+</html>

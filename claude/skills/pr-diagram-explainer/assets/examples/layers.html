@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../base.css">
+<style>
+  .lanes { display: flex; flex-direction: column; gap: 14px; }
+  .lane > .body { display: grid; grid-template-columns: 210px 210px 210px; column-gap: 30px; }
+  .lane .node { padding: 8px 12px; }
+  .c1 { grid-column: 1; } .c2 { grid-column: 2; } .c3 { grid-column: 3; }
+  .legend-wire { display: inline-block; width: 36px; height: 0; border-top: 2.5px solid var(--wire); vertical-align: 4px; margin-right: 8px; }
+  .legend-wire.ng { border-top: 2.5px dashed var(--red); }
+</style>
+</head>
+<body>
+<div class="fig">
+  <div class="row" style="--align:flex-start">
+    <header class="grow">
+      <div class="title">層の間の参照の向き</div>
+      <div class="subtitle">矢印は 参照される側 → 参照する側</div>
+    </header>
+    <div class="legend" style="margin-top:12px">
+      <span><span class="legend-wire"></span>許す参照</span>
+      <span><span class="legend-wire ng"></span>違反の例</span>
+    </div>
+  </div>
+
+  <div class="lanes">
+    <div class="lane c-amber">
+      <div class="label">取り込み</div>
+      <div class="body"><div class="node c2 c-amber" id="raw"><div class="name">raw</div><div class="sub mono">orders_raw</div></div></div>
+    </div>
+    <div class="lane c-slate">
+      <div class="label">整形</div>
+      <div class="body"><div class="node c2" id="stg"><div class="name">staging</div><div class="sub mono">stg_orders</div></div></div>
+    </div>
+    <div class="lane c-blue">
+      <div class="label">中間</div>
+      <div class="body">
+        <div class="node c1 c-blue" id="base"><div class="name">base</div><div class="sub mono">int_customers</div></div>
+        <div class="node c2 c-blue" id="int"><div class="name">intermediate</div><div class="sub mono">int_orders_joined</div></div>
+      </div>
+    </div>
+    <div class="lane c-violet">
+      <div class="label">集計</div>
+      <div class="body"><div class="node c2 c-violet" id="fct"><div class="name">fact</div><div class="sub mono">fct_orders</div></div></div>
+    </div>
+    <div class="lane c-pink">
+      <div class="label">公開</div>
+      <div class="body"><div class="node c2 c-pink" id="rpt"><div class="name">report</div><div class="sub mono">rpt_sales</div></div></div>
+    </div>
+  </div>
+
+  <div class="key">
+    <span class="num">1</span><span>fact が staging を参照</span><code>fact_ref_direction</code>
+    <span class="num">2</span><span>fact が base を参照</span><code>fact_ref_direction</code>
+  </div>
+  <div class="caption">矢印の無い参照は全て違反になる（上の層や同じ層への参照を含む）。</div>
+</div>
+
+<script type="application/json" id="wires">
+[
+  {"from": "raw", "to": "stg"},
+  {"from": "stg", "to": "int"},
+  {"from": "base", "to": "int"},
+  {"from": "int", "to": "fct"},
+  {"from": "fct", "to": "rpt"},
+  {"from": "stg", "to": "fct", "from_side": "right", "to_side": "right", "offset": 60, "kind": "ng", "dash": true, "cross": true, "num": "1"},
+  {"from": "base", "to": "fct", "from_side": "bottom", "to_side": "left", "kind": "ng", "dash": true, "cross": true, "cross_at": 0.3, "num": "2"}
+]
+</script>
+<script src="../wires.js"></script>
+</body>
+</html>

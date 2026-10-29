@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../base.css">
+<style>
+  .panel { flex: 1; background: #fbfcfd; border: 1.5px solid var(--line); border-radius: 14px; padding: 18px 22px 22px; display: flex; flex-direction: column; gap: 18px; }
+  .panel-head { display: flex; gap: 12px; align-items: center; font-size: 17px; font-weight: 700; }
+  .stage { display: grid; grid-template-columns: 110px 1fr 104px; align-items: center; column-gap: 48px; }
+  .users { display: flex; flex-direction: column; gap: 16px; }
+  .users .node { padding: 6px 8px; }
+  .store { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px 8px; }
+  .store .item { font-size: 15px; background: var(--slate-bg); border-radius: 6px; padding: 2px 8px; }
+</style>
+</head>
+<body>
+<div class="fig">
+  <header>
+    <div class="title">バケットに届くのは取り込みのユーザーだけになる</div>
+    <div class="subtitle">ロールの引き受けを、既定の全員から取り込みの 1 ユーザーに絞る</div>
+  </header>
+
+  <div class="row" style="--gap:24px">
+    <div class="panel">
+      <div class="panel-head"><span class="tag c-red">変更前</span>全員が引き受けられる</div>
+      <div class="stage">
+        <div class="users">
+          <div class="node" id="b-analyst"><div class="name">analyst</div><div class="sub">分析</div></div>
+          <div class="node" id="b-report"><div class="name">report</div><div class="sub">レポート</div></div>
+          <div class="node" id="b-loader"><div class="name">loader</div><div class="sub">取り込み</div></div>
+        </div>
+        <div class="node" id="b-role"><div class="name">ロール</div><div class="sub mono">storage</div></div>
+        <div class="node store" id="b-store"><div class="name">バケット</div><span class="pill c-red">読み書き</span><div class="item mono">raw/</div><div class="item mono">export/</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><span class="tag c-green">変更後</span>loader だけが読み取れる</div>
+      <div class="stage">
+        <div class="users">
+          <div class="node muted" id="a-analyst"><div class="name">analyst</div><div class="sub">分析</div></div>
+          <div class="node muted" id="a-report"><div class="name">report</div><div class="sub">レポート</div></div>
+          <div class="node changed c-green" id="a-loader" style="border-color:var(--green);background:var(--green-bg)"><div class="name">loader</div><div class="sub">取り込み</div></div>
+        </div>
+        <div class="node" id="a-role"><div class="name">ロール</div><div class="sub mono">storage</div></div>
+        <div class="node store" id="a-store"><div class="name">バケット</div><span class="pill c-green">読み取り</span><div class="item mono">raw/</div><div class="item mono">export/</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="caption">書き出し（export/ への書き込み）は誰にも付けない。管理者はこの制御を受けないため省いた。</div>
+</div>
+
+<script type="application/json" id="wires">
+[
+  {"from": "b-analyst", "to": "b-role", "route": "curve", "to_at": 0.35},
+  {"from": "b-report", "to": "b-role", "route": "curve", "to_at": 0.5},
+  {"from": "b-loader", "to": "b-role", "route": "curve", "to_at": 0.65},
+  {"from": "b-role", "to": "b-store", "kind": "ng"},
+  {"from": "a-analyst", "stub": true},
+  {"from": "a-report", "stub": true},
+  {"from": "a-loader", "to": "a-role", "kind": "ok", "from_side": "right", "to_side": "bottom"},
+  {"from": "a-store", "to": "a-role", "kind": "ok"}
+]
+</script>
+<script src="../wires.js"></script>
+</body>
+</html>

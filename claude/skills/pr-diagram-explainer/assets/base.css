@@ -1,0 +1,106 @@
+/* PR 解説図の部品。幅 1000px の .fig に組み、figtool.py render で 2 倍の PNG にする。
+   GitHub は幅およそ 880px で表示するので、文字は 15px 以上にする（縮小後 13px 以上）。 */
+
+:root {
+  --ink: #0f172a;
+  --sub: #475569;
+  --muted: #94a3b8;
+  --line: #cbd5e1;
+  --panel: #f8fafc;
+  --wire: #475569;
+
+  --red: #c62828;    --red-bg: #fdecec;    --red-bd: #ef9a9a;
+  --green: #15803d;  --green-bg: #e8f5ec;  --green-bd: #86c99a;
+  --amber: #a16207;  --amber-bg: #fdf6e3;  --amber-bd: #f2c46d;
+  --blue: #1d4ed8;   --blue-bg: #eaf1fd;   --blue-bd: #93b4f5;
+  --violet: #6d28d9; --violet-bg: #f2eefc; --violet-bd: #b9a2f0;
+  --pink: #be185d;   --pink-bg: #fbeef4;   --pink-bd: #f0a6c8;
+  --slate: #334155;  --slate-bg: #f1f5f9;  --slate-bd: #cbd5e1;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: #ffffff; }
+body {
+  width: 1000px;
+  font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", sans-serif;
+  color: var(--ink);
+  font-size: 17px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+code, .mono { font-family: "SF Mono", Menlo, Consolas, "Noto Sans Mono", monospace; font-size: max(15px, 0.92em); }
+
+/* ---- 図全体と見出し ---- */
+.fig { position: relative; width: 1000px; padding: 36px 40px 32px; display: flex; flex-direction: column; gap: 22px; }
+.eyebrow { font-size: 15px; color: var(--sub); }
+.title { font-size: 30px; font-weight: 800; line-height: 1.3; }
+.subtitle { font-size: 17px; color: var(--sub); margin-top: 6px; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 28px; align-items: center; font-size: 15px; color: var(--sub); }
+.legend .dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; background: var(--c, var(--muted)); vertical-align: -1px; }
+.legend .swatch { display: inline-block; width: 16px; height: 16px; border-radius: 4px; margin-right: 6px; background: var(--bg, #fff); border: 1.5px solid var(--bd, var(--line)); vertical-align: -3px; }
+
+/* ---- 並べる ---- */
+.row { display: flex; gap: var(--gap, 40px); align-items: var(--align, stretch); }
+.col { display: flex; flex-direction: column; gap: var(--gap, 14px); }
+.grow { flex: 1; }
+.center { align-items: center; justify-content: center; text-align: center; }
+.spacer { flex: 1; }
+.arrow-glyph { align-self: center; font-size: 30px; color: var(--muted); }
+.arrow-glyph::before { content: "→"; }
+
+/* ---- カテゴリの色。--fg 文字、--bg 塗り、--bd 枠、--c 凡例の点 ---- */
+.c-red    { --fg: var(--red);    --bg: var(--red-bg);    --bd: var(--red-bd);    --c: #ef4444; }
+.c-green  { --fg: var(--green);  --bg: var(--green-bg);  --bd: var(--green-bd);  --c: #22c55e; }
+.c-amber  { --fg: var(--amber);  --bg: var(--amber-bg);  --bd: var(--amber-bd);  --c: #f59e0b; }
+.c-blue   { --fg: var(--blue);   --bg: var(--blue-bg);   --bd: var(--blue-bd);   --c: #3b82f6; }
+.c-violet { --fg: var(--violet); --bg: var(--violet-bg); --bd: var(--violet-bd); --c: #8b5cf6; }
+.c-pink   { --fg: var(--pink);   --bg: var(--pink-bg);   --bd: var(--pink-bd);   --c: #ec4899; }
+.c-slate  { --fg: var(--slate);  --bg: var(--slate-bg);  --bd: var(--slate-bd);  --c: #94a3b8; }
+
+/* ---- 囲む: パネル、帯（層やレーン） ---- */
+.card { background: var(--bg, var(--panel)); border: 1.5px solid var(--bd, var(--line)); border-radius: 14px; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; }
+.card > .head { font-size: 15px; font-weight: 700; color: var(--fg, var(--sub)); }
+.card > .heading { font-size: 20px; font-weight: 800; }
+.lane { background: var(--bg, var(--panel)); border-radius: 16px; padding: 16px 20px; display: grid; grid-template-columns: 150px 1fr; align-items: center; gap: 16px; }
+.lane > .label { font-size: 18px; font-weight: 700; color: var(--fg, var(--sub)); }
+.lane > .label small { display: block; font-size: 15px; font-weight: 400; color: var(--sub); }
+.lane > .body { display: flex; gap: 40px; align-items: center; }
+
+/* ---- 箱: 名前と実例 ---- */
+.node { background: #ffffff; border: 2px solid var(--bd, var(--line)); border-radius: 10px; padding: 10px 18px; text-align: center; }
+.node .name { font-size: 19px; font-weight: 700; color: var(--fg, var(--ink)); }
+.node .sub { font-size: 15px; color: var(--sub); }
+.node.dashed { border-style: dashed; }
+.node.changed { border: 3px solid var(--blue); background: var(--blue-bg); }
+.node.muted { border-color: #e2e8f0; background: #f8fafc; }
+.node.muted .name, .node.muted .sub { color: var(--muted); }
+.node.left { text-align: left; }
+
+/* ---- 状態: 結論を太く大きく、補足は小さく灰色 ---- */
+.verdict { font-size: 22px; font-weight: 800; color: var(--fg, var(--ink)); }
+.verdict small { font-size: 15px; font-weight: 700; margin-left: 8px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 2px 12px; font-size: 15px; font-weight: 700; color: var(--fg, var(--sub)); background: var(--bg, var(--slate-bg)); border: 1.5px solid var(--bd, var(--line)); white-space: nowrap; }
+.badge { display: inline-block; border-radius: 999px; padding: 1px 12px; font-size: 15px; font-weight: 800; color: #ffffff; background: var(--fg, var(--blue)); white-space: nowrap; }
+.tag { display: inline-block; border-radius: 6px; padding: 1px 10px; font-size: 15px; font-weight: 800; color: var(--fg, var(--ink)); background: var(--bg, #fff); border: 1.5px solid var(--bd, var(--ink)); }
+.icon { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; border: 2.5px solid currentColor; font-size: 16px; font-weight: 900; line-height: 1; flex: none; }
+.icon.ok { color: var(--green); }
+.icon.ok::before { content: "✓"; }
+.icon.ng { color: var(--red); }
+.icon.ng::before { content: "✕"; }
+.result { display: inline-flex; align-items: center; gap: 10px; font-size: 19px; font-weight: 700; color: var(--fg, var(--ink)); }
+.big { font-size: 48px; font-weight: 800; line-height: 1; }
+.big small { font-size: 18px; font-weight: 700; margin-left: 4px; }
+.strike { text-decoration: line-through; color: var(--muted); }
+
+/* ---- 文を書いてよい所: 補足、注記、キャプション ---- */
+.detail { font-size: 15px; color: var(--sub); line-height: 1.6; }
+.note { display: flex; gap: 18px; align-items: baseline; background: var(--amber-bg); border: 1.5px dashed var(--amber-bd); border-radius: 12px; padding: 14px 20px; font-size: 15px; line-height: 1.7; }
+.note > .label { font-weight: 800; color: var(--amber); white-space: nowrap; }
+.caption { font-size: 15px; color: var(--sub); line-height: 1.7; }
+.key { display: grid; grid-template-columns: 32px auto 1fr; gap: 6px 12px; align-items: baseline; font-size: 16px; }
+.key .num { font-size: 22px; font-weight: 800; color: var(--red); }
+
+/* ---- 矢印（wires.js が描く） ---- */
+svg.wires { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
+.wire-label { position: absolute; font-size: 15px; font-weight: 700; white-space: nowrap; transform: translate(-50%, -100%); padding: 0 4px 2px; background: #ffffff; border-radius: 4px; }
+.wire-num { position: absolute; font-size: 22px; font-weight: 800; color: var(--red); transform: translate(-50%, -50%); }
