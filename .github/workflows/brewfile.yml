@@ -30,6 +30,8 @@ jobs:
             tap_name=$(echo "$line" | sed 's/tap "\([^"]*\)".*/\1/')
             echo "Adding tap: $tap_name"
             brew tap "$tap_name" || echo "::warning::Failed to tap $tap_name"
+            # Homebrew requires non-official taps to be trusted before loading them
+            brew trust --tap "$tap_name" || echo "::warning::Failed to trust $tap_name"
           done < <(grep -E "^tap " Brewfile || true)
 
       - name: Check package availability
@@ -119,7 +121,7 @@ jobs:
                 sed -i '' "/^brew \"$escaped_name\"/d" Brewfile
                 ;;
               cask)
-                escaped_name=$(echo "$name" | sed 's/[@]/\\&/g')
+                escaped_name=$(echo "$name" | sed 's/[/@]/\\&/g')
                 sed -i '' "/^cask \"$escaped_name\"/d" Brewfile
                 ;;
             esac
