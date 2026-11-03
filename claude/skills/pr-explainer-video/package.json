@@ -4,8 +4,8 @@
   "version": "1.0.0",
   "description": "Dependencies for the pr-explainer-video skill. Installed into PR_EXPLAINER_VIDEO_HOME by scripts/setup.sh.",
   "dependencies": {
-    "@fontsource/noto-sans-jp": "5.1.0",
-    "@fontsource/roboto": "5.1.0",
-    "puppeteer-core": "23.11.1"
+    "@fontsource/noto-sans-jp": "5.3.1",
+    "@fontsource/roboto": "5.3.0",
+    "puppeteer-core": "25.16.0"
   }
 }
