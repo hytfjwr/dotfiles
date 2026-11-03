@@ -1,4 +1,4 @@
-.PHONY: all brew npm claude ohmyzsh link launchd macos format lint mise statusline tmux-shim
+.PHONY: all brew npm claude ohmyzsh link launchd macos format lint lint-lua lint-shell mise statusline tmux-shim
 
 all:
 	./setup.sh
@@ -36,13 +36,15 @@ tmux-shim:
 format:
 	stylua .
 
-lint:
+lint: lint-lua lint-shell
+
+lint-lua:
 	stylua --check .
-	cd scripts && shellcheck -x *.sh lib/*.sh ../setup.sh ../install.sh
-	shellcheck local_bin/aerospace-fix-windows
-	shellcheck local_bin/awake
-	shellcheck local_bin/claude-warmup
-	shellcheck local_bin/secure-input
-	shellcheck local_bin/tuicr-prompt
-	shellcheck local_bin/cw-herdr
-	shellcheck local_bin/tuicr-review
+
+# Every bash/sh script under these paths, found by shebang (tracked or not yet added).
+SHELL_SCRIPT_PATHS = scripts local_bin setup.sh install.sh
+
+lint-shell:
+	git ls-files -z --cached --others --exclude-standard -- $(SHELL_SCRIPT_PATHS) \
+		| xargs -0 awk 'FNR == 1 { if ($$0 ~ /^#!.*[\/ ](ba)?sh([ \t]|$$)/) print FILENAME; nextfile }' \
+		| xargs shellcheck -x
