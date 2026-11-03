@@ -1,0 +1,2 @@
+# Placeholder "SECRET_TOKEN" in a test fixture, not a real credential
+b6dfdfa1a7c84e60f2105c5d5f261cd91e873a69:claude/skills/progress-hud/tests/security.test.mjs:curl-auth-header:198
