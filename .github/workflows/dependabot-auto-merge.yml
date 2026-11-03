@@ -1,0 +1,79 @@
+name: Dependabot auto-merge
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  metadata:
+    name: Read update metadata
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: read
+    outputs:
+      update-type: ${{ steps.meta.outputs.update-type }}
+    steps:
+      - id: meta
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+
+  wait-for-checks:
+    name: Wait for other checks
+    needs: metadata
+    # Major updates are left for manual review
+    if: needs.metadata.outputs.update-type != 'version-update:semver-major'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      checks: read
+      pull-requests: read
+      statuses: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      SELF_WORKFLOW: ${{ github.workflow }}
+    steps:
+      - name: Wait until every check outside this workflow passes
+        run: |
+          # Give path-filtered workflows time to register their checks
+          sleep 30
+          while true; do
+            checks=$(gh pr checks "$PR_NUMBER" --json name,bucket,workflow \
+              --jq "[.[] | select(.workflow != \"$SELF_WORKFLOW\")]")
+            total=$(jq 'length' <<<"$checks")
+            failed=$(jq '[.[] | select(.bucket == "fail" or .bucket == "cancel")] | length' <<<"$checks")
+            pending=$(jq '[.[] | select(.bucket == "pending")] | length' <<<"$checks")
+            echo "checks: total=$total pending=$pending failed=$failed"
+            if [ "$failed" -gt 0 ]; then
+              jq -r '.[] | select(.bucket == "fail" or .bucket == "cancel") | "::error::\(.workflow) / \(.name) failed"' <<<"$checks"
+              exit 1
+            fi
+            if [ "$total" -gt 0 ] && [ "$pending" -eq 0 ]; then
+              exit 0
+            fi
+            sleep 30
+          done
+
+  merge:
+    name: Merge
+    needs: wait-for-checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - run: gh pr merge "$PR_NUMBER" --squash --match-head-commit "$HEAD_SHA"
