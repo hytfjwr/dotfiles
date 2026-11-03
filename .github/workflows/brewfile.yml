@@ -5,20 +5,36 @@ on:
     branches: [main]
     paths:
       - "Brewfile"
+      - ".github/workflows/brewfile.yml"
   pull_request:
     branches: [main]
     paths:
       - "Brewfile"
+      - ".github/workflows/brewfile.yml"
   schedule:
     - cron: "0 0 * * 1" # 毎週月曜日に実行
   workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   validate:
     name: Validate Brewfile
     runs-on: macos-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    outputs:
+      errors: ${{ steps.check.outputs.errors }}
+      removed: ${{ steps.check.outputs.removed }}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Update Homebrew
         run: brew update
@@ -27,7 +43,8 @@ jobs:
         shell: bash
         run: |
           while read -r line; do
-            tap_name=$(echo "$line" | sed 's/tap "\([^"]*\)".*/\1/')
+            tap_name=${line#*\"}
+            tap_name=${tap_name%%\"*}
             echo "Adding tap: $tap_name"
             brew tap "$tap_name" || echo "::warning::Failed to tap $tap_name"
             # Homebrew requires non-official taps to be trusted before loading them
@@ -44,10 +61,16 @@ jobs:
           removed_file=$(mktemp)
           touch "$removed_file"
 
+          # Extract the first quoted value of a Brewfile line
+          quoted() {
+            local v=${1#*\"}
+            echo "${v%%\"*}"
+          }
+
           # Check taps
           echo "### Taps" >> "$GITHUB_STEP_SUMMARY"
           while read -r line; do
-            tap_name=$(echo "$line" | sed 's/tap "\([^"]*\)".*/\1/')
+            tap_name=$(quoted "$line")
             if brew tap-info "$tap_name" &>/dev/null; then
               echo "- ✅ $tap_name" >> "$GITHUB_STEP_SUMMARY"
             else
@@ -60,7 +83,7 @@ jobs:
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "### Formulae (brew)" >> "$GITHUB_STEP_SUMMARY"
           while read -r line; do
-            pkg=$(echo "$line" | sed 's/brew "\([^"]*\)".*/\1/')
+            pkg=$(quoted "$line")
             if brew info "$pkg" &>/dev/null; then
               echo "- ✅ $pkg" >> "$GITHUB_STEP_SUMMARY"
             else
@@ -74,7 +97,7 @@ jobs:
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "### Casks" >> "$GITHUB_STEP_SUMMARY"
           while read -r line; do
-            cask=$(echo "$line" | sed 's/cask "\([^"]*\)".*/\1/')
+            cask=$(quoted "$line")
             if brew info --cask "$cask" &>/dev/null; then
               echo "- ✅ $cask" >> "$GITHUB_STEP_SUMMARY"
             else
@@ -92,7 +115,6 @@ jobs:
             echo "" >> "$GITHUB_STEP_SUMMARY"
             echo "**$errors package(s) not found in Homebrew**" >> "$GITHUB_STEP_SUMMARY"
 
-            # Save removed packages for next step
             {
               echo 'removed<<EOF'
               cat "$removed_file"
@@ -102,36 +124,43 @@ jobs:
 
           rm -f "$removed_file"
 
+      - name: Fail on validation errors (push/PR only)
+        if: steps.check.outputs.errors > 0 && github.event_name != 'schedule' && github.event_name != 'workflow_dispatch'
+        run: exit 1
+
+  remove-unavailable:
+    name: Open PR removing unavailable packages
+    needs: validate
+    if: needs.validate.outputs.errors > 0 && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
       - name: Remove unavailable packages from Brewfile
-        if: steps.check.outputs.errors > 0 && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
         shell: bash
+        env:
+          REMOVED: ${{ needs.validate.outputs.removed }}
         run: |
-          echo "${{ steps.check.outputs.removed }}" | while read -r line; do
+          while read -r line; do
             [ -z "$line" ] && continue
-            type=$(echo "$line" | cut -d: -f1)
-            name=$(echo "$line" | cut -d: -f2)
+            type=${line%%:*}
+            name=${line#*:}
             echo "Removing $type: $name"
-            case "$type" in
-              tap)
-                sed -i '' "/^tap \"$name\"/d" Brewfile
-                ;;
-              brew)
-                # Escape special characters for sed
-                escaped_name=$(echo "$name" | sed 's/[/@]/\\&/g')
-                sed -i '' "/^brew \"$escaped_name\"/d" Brewfile
-                ;;
-              cask)
-                escaped_name=$(echo "$name" | sed 's/[/@]/\\&/g')
-                sed -i '' "/^cask \"$escaped_name\"/d" Brewfile
-                ;;
-            esac
-          done
+            # Delete exact-match lines without regex escaping issues
+            awk -v prefix="$type \"$name\"" 'index($0, prefix) != 1' Brewfile > Brewfile.tmp
+            mv Brewfile.tmp Brewfile
+          done <<<"$REMOVED"
 
       - name: Create Pull Request
-        if: steps.check.outputs.errors > 0 && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
-        uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ github.token }}
           commit-message: "chore: remove unavailable Homebrew packages"
           title: "chore: remove unavailable Homebrew packages"
           body: |
@@ -140,7 +169,7 @@ jobs:
             The following packages are no longer available in Homebrew and have been removed from the Brewfile:
 
             ```
-            ${{ steps.check.outputs.removed }}
+            ${{ needs.validate.outputs.removed }}
             ```
 
             This PR was automatically created by the Brewfile validation workflow.
@@ -148,7 +177,3 @@ jobs:
           delete-branch: true
           reviewers: hytfjwr
           labels: unavailable brew package found
-
-      - name: Fail on validation errors (push/PR only)
-        if: steps.check.outputs.errors > 0 && github.event_name != 'schedule' && github.event_name != 'workflow_dispatch'
-        run: exit 1

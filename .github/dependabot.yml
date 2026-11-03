@@ -6,6 +6,8 @@ updates:
       interval: "weekly"
       day: "monday"
       timezone: "Asia/Tokyo"
+    cooldown:
+      default-days: 7
     groups:
       github-actions:
         patterns: ["*"]
@@ -18,6 +20,8 @@ updates:
       interval: "weekly"
       day: "monday"
       timezone: "Asia/Tokyo"
+    cooldown:
+      default-days: 7
     groups:
       cargo:
         patterns: ["*"]
@@ -28,6 +32,8 @@ updates:
       interval: "weekly"
       day: "monday"
       timezone: "Asia/Tokyo"
+    cooldown:
+      default-days: 7
     groups:
       npm:
         patterns: ["*"]
