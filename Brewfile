@@ -1,13 +1,13 @@
 # Brewfile
 
 # Taps
-tap "rbenv/tap"
-tap "nikitabobko/tap"
-tap "FelixKratz/formulae"
-tap "daipeihust/tap"
-tap "hashicorp/tap"
-tap "k1low/tap"
-tap "hytfjwr/tap"
+tap "rbenv/tap", trusted: true
+tap "nikitabobko/tap", trusted: true
+tap "FelixKratz/formulae", trusted: true
+tap "daipeihust/tap", trusted: true
+tap "hashicorp/tap", trusted: true
+tap "k1low/tap", trusted: true
+tap "hytfjwr/tap", trusted: true
 
 # CLI
 brew "git"
