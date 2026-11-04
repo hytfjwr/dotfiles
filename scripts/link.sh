@@ -53,19 +53,6 @@ LINKS=(
     "herdr/config.toml|$HOME/.config/herdr/config.toml"
     "starship/starship.toml|$HOME/.config/starship.toml"
 
-    # ~/.local/bin
-    "local_bin/env|$HOME/.local/bin/env"
-    "local_bin/env.fish|$HOME/.local/bin/env.fish"
-    "local_bin/aerospace-fix-windows|$HOME/.local/bin/aerospace-fix-windows"
-    "local_bin/nvim-clean|$HOME/.local/bin/nvim-clean"
-    "local_bin/awake|$HOME/.local/bin/awake"
-    "local_bin/wezterm-clean|$HOME/.local/bin/wezterm-clean"
-    "local_bin/secure-input|$HOME/.local/bin/secure-input"
-    "local_bin/claude-warmup|$HOME/.local/bin/claude-warmup"
-    "local_bin/claude-session-bridge|$HOME/.local/bin/claude-session-bridge"
-    "local_bin/tuicr-prompt|$HOME/.local/bin/tuicr-prompt"
-    "local_bin/tuicr-review|$HOME/.local/bin/tuicr-review"
-
     # Codex
     "codex/config.toml|$HOME/.codex/config.toml"
 
@@ -105,6 +92,13 @@ section "Creating symlinks"
 
 for entry in "${LINKS[@]}"; do
     link "${entry%%|*}" "${entry#*|}"
+done
+
+# Every script in local_bin goes to ~/.local/bin, so adding one needs no edit here
+for src in "$DOTFILES_DIR"/local_bin/*; do
+    if [ -f "$src" ]; then
+        link "local_bin/$(basename "$src")" "$HOME/.local/bin/$(basename "$src")"
+    fi
 done
 
 for entry in "${BUILT_LINKS[@]}"; do
