@@ -10,7 +10,13 @@ section "Installing Homebrew and packages"
 if ! command -v brew &> /dev/null; then
     info "Installing Homebrew..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    eval "$(/opt/homebrew/bin/brew shellenv)"
+    # Apple Silicon installs to /opt/homebrew, Intel to /usr/local.
+    for brew in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+        if [ -x "$brew" ]; then
+            eval "$("$brew" shellenv)"
+            break
+        fi
+    done
     success "Homebrew installed"
 else
     warn "Homebrew already installed"
