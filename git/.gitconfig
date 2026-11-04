@@ -1,7 +1,3 @@
-[user]
-    name =
-    email =
-
 [core]
     editor = nvim
 
@@ -12,4 +8,23 @@
     rebase = false
 
 [status]
-    showuntrackedfiles = no
+    showuntrackedfiles = yes
+
+[credential "https://github.com"]
+	helper = 
+	helper = !/opt/homebrew/bin/gh auth git-credential
+
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !/opt/homebrew/bin/gh auth git-credential
+
+[filter "lfs"]
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+	clean = git-lfs clean -- %f
+
+# Identity and per-directory overrides live in ~/.gitconfig.local
+# (git/.gitconfig.local in this repo, not tracked). Included last so it wins.
+[include]
+    path = ~/.gitconfig.local

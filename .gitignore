@@ -8,3 +8,7 @@ claude/skills/progress-hud/tests/.build/
 claude/skills/progress-hud/tests/look.html
 gh/hosts.yml
 codex/config.toml
+
+# Machine-local settings, kept out of this public repo
+git/.gitconfig.local
+git/.gitconfig-hytfjwr

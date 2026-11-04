@@ -37,6 +37,8 @@ LINKS=(
     # $HOME
     "zsh/.zshrc|$HOME/.zshrc"
     "git/.gitconfig|$HOME/.gitconfig"
+    "git/.gitconfig.local|$HOME/.gitconfig.local"
+    "git/.gitconfig-hytfjwr|$HOME/.gitconfig-hytfjwr"
     "aerospace/aerospace.toml|$HOME/.aerospace.toml"
 
     # ~/.config
