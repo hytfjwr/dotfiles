@@ -31,7 +31,7 @@ mise:
 	./scripts/mise.sh
 
 statusline:
-	cd claude/statusline && cargo build --release
+	cd tools/claude-statusline && cargo build --release
 
 tmux-shim:
 	cd tools/wezterm-tmux-shim && cargo build --release

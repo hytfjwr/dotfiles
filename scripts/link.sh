@@ -64,7 +64,7 @@ LINKS=(
 # "<source relative to dotfiles>|<absolute target path>|<how to build it>"
 BUILT_LINKS=(
     "tools/wezterm-tmux-shim/target/release/wezterm-tmux-shim|$HOME/.local/bin/tmux|make tmux-shim"
-    "claude/statusline/target/release/claude-statusline|$HOME/.local/bin/claude-statusline|make statusline"
+    "tools/claude-statusline/target/release/claude-statusline|$HOME/.local/bin/claude-statusline|make statusline"
 )
 
 # Linked into every editor directory that exists
