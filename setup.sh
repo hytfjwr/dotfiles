@@ -25,6 +25,7 @@ load_brew
 eval "$(mise activate bash --shims)"
 "$DOTFILES_DIR/scripts/npm.sh"
 "$DOTFILES_DIR/scripts/claude.sh"
+"$DOTFILES_DIR/scripts/claude-settings.sh"
 "$DOTFILES_DIR/scripts/bun.sh"
 "$DOTFILES_DIR/scripts/ohmyzsh.sh"
 "$DOTFILES_DIR/scripts/macos.sh"

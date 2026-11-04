@@ -12,3 +12,4 @@ codex/config.toml
 # Machine-local settings, kept out of this public repo
 git/.gitconfig.local
 git/.gitconfig-hytfjwr
+claude/settings.local.json

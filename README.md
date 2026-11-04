@@ -28,10 +28,11 @@ The `setup.sh` script runs the following in order:
 2. **link.sh** - Creates symlinks for configuration files
 3. **mise.sh** - Sets up mise and installs tool versions
 4. **npm.sh** - Installs global npm packages
-5. **claude.sh** - Sets up Claude Code
-6. **bun.sh** - Installs bun and adds it to PATH in `.zshrc`
-7. **ohmyzsh.sh** - Sets up Oh My Zsh with plugins
-8. **macos.sh** - Applies macOS system preferences
+5. **claude.sh** - Installs Claude Code
+6. **claude-settings.sh** - Generates `~/.claude/settings.json` from `claude/settings.base.json` and the untracked `claude/settings.local.json`
+7. **bun.sh** - Installs bun and adds it to PATH in `.zshrc`
+8. **ohmyzsh.sh** - Sets up Oh My Zsh with plugins
+9. **macos.sh** - Applies macOS system preferences
 
 ### Individual Setup
 
@@ -42,7 +43,8 @@ make brew      # Install Homebrew packages only
 make link      # Create symlinks only
 make mise      # Set up mise and install tools
 make npm       # Install npm packages only
-make claude    # Set up Claude Code
+make claude    # Install Claude Code
+make claude-settings  # Generate ~/.claude/settings.json
 make ohmyzsh   # Set up Oh My Zsh only
 make macos     # Apply macOS settings only
 make format    # Format Lua files with StyLua

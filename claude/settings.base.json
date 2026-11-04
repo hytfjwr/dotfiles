@@ -14,7 +14,6 @@
   "permissions": {
     "defaultMode": "auto"
   },
-  "model": "opus",
   "hooks": {
     "Notification": [
       {
@@ -90,7 +89,8 @@
     "typescript-lsp@claude-plugins-official": true,
     "natural-japanese@natural-japanese": true,
     "dbt-extras@dbt-agent-marketplace": true,
-    "yomiyasu@yomiyasu": true
+    "yomiyasu@yomiyasu": true,
+    "figma@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "dbt-agent-marketplace": {
@@ -134,6 +134,9 @@
     },
     "claude-sonnet-5-5": {
       "effortLevel": "high"
+    },
+    "claude-haiku-5-5": {
+      "effortLevel": "low"
     }
   },
   "voice": {

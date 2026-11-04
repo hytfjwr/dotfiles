@@ -1,4 +1,4 @@
-.PHONY: all brew npm claude ohmyzsh link launchd macos format lint lint-lua lint-shell mise statusline tmux-shim
+.PHONY: all brew npm claude claude-settings ohmyzsh link launchd macos format lint lint-lua lint-shell mise statusline tmux-shim
 
 all:
 	./setup.sh
@@ -11,6 +11,9 @@ npm:
 
 claude:
 	./scripts/claude.sh
+
+claude-settings:
+	./scripts/claude-settings.sh
 
 ohmyzsh:
 	./scripts/ohmyzsh.sh
