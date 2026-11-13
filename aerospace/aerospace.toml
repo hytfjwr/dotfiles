@@ -275,6 +275,11 @@ run = 'layout floating'
 if.app-id = 'com.apple.SecurityAgent'
 run = 'layout floating'
 
+# QuickTime Player は移動せず、いまのワークスペースに floating で出す（最大化させない）
+[[on-window-detected]]
+if.app-id = 'com.apple.QuickTimePlayerX'
+run = 'layout floating'
+
 # Catch-all: 上記のどのルールにもマッチしないアプリは Workspace F へ
 [[on-window-detected]]
 if = 'true'
