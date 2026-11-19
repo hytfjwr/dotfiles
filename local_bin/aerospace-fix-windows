@@ -45,7 +45,6 @@ get_target_workspace() {
         com.cmuxterm.app)          echo "1" ;;
         # Development Tools -> Workspace 2
         com.todesktop.230313mzl4w4u92) echo "2" ;;  # Cursor
-        com.jetbrains.PhpStorm)    echo "2" ;;
         com.microsoft.VSCode)      echo "2" ;;
         # Web Browsers -> Workspace 3
         company.thebrowser.dia)   echo "3" ;;  # Dia
